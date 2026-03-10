@@ -403,10 +403,10 @@ export default function AdminLogin() {
         />
         <div className="flex items-center justify-center">
 
-<img src="/robot3.png" width={100} height={100} alt="" />
+{/* <img src="/robot3.png" width={100} height={100} alt="" /> */}
         </div>
         {/* Character */}
-        {/* <div ref={faceRef} style={{ display: 'flex', justifyContent: 'center' }}>
+        <div ref={faceRef} style={{ display: 'flex', justifyContent: 'center' }}>
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
@@ -419,7 +419,7 @@ export default function AdminLogin() {
               showPassword={showPassword}
             />
           </motion.div>
-        </div> */}
+        </div>
 
         {/* Hint */}
         <motion.p

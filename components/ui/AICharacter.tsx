@@ -287,9 +287,9 @@ const AICharacter = () => {
               stiffness: 120,
               duration: 0.8
             }}
-            className="fixed bottom-10 right-10 z-50"
+            className="fixed bottom-4 right-4 md:bottom-10 md:right-10 z-50"
           >
-            <div className="relative">
+            <div className="relative flex flex-col items-end md:block">
               {/* Robot Character */}
               <motion.div
                 animate={{ y: [0, -10, 0] }}
@@ -329,7 +329,7 @@ const AICharacter = () => {
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   exit={{ opacity: 0, x: -20, scale: 0.92 }}
                   transition={{ type: 'spring', damping: 22, stiffness: 180, delay: 0.2 }}
-                  className="absolute top-1/2 -translate-y-1/2 -left-[340px] w-80"
+                  className="absolute bottom-full right-0 mb-4 md:mb-0 md:top-1/2 md:-translate-y-1/2 md:-left-[340px] md:bottom-auto md:right-auto w-[calc(100vw-2rem)] max-w-[320px] md:w-80"
                   style={{ filter: 'drop-shadow(0 0 18px rgba(139,92,246,0.35))' }}
                 >
                   {/* Gradient border wrapper */}
@@ -425,9 +425,13 @@ const AICharacter = () => {
                     </div>
                   </div>
 
-                  {/* Arrow pointing right toward the robot */}
+                  {/* Arrow pointing right toward the robot (Desktop) or down (Mobile) */}
                   <div
-                    className="absolute top-1/2 -translate-y-1/2 -right-2 w-4 h-4 rotate-45"
+                    className="absolute hidden md:block top-1/2 -translate-y-1/2 -right-2 w-4 h-4 rotate-45"
+                    style={{ background: '#0d0d1a', border: '1.5px solid #a855f7', borderLeft: 'none', borderTop: 'none' }}
+                  />
+                  <div
+                    className="absolute md:hidden -bottom-2 right-[60px] w-4 h-4 rotate-45"
                     style={{ background: '#0d0d1a', border: '1.5px solid #a855f7', borderLeft: 'none', borderTop: 'none' }}
                   />
                 </motion.div>
@@ -460,7 +464,7 @@ const AICharacter = () => {
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
-          className="fixed bottom-6 right-6 z-50 w-[400px] max-w-[calc(100vw-2rem)]"
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[60] w-[400px] max-w-[calc(100vw-2rem)]"
         >
           <div className="relative">
             <div className="bg-gray-800/90 backdrop-blur-xl rounded-2xl border border-purple-500/30 shadow-2xl neon-glow overflow-hidden">
@@ -596,7 +600,7 @@ const AICharacter = () => {
             setShowAI(true)
             setMode('chat')
           }}
-          className="fixed bottom-25 right-6 z-50 w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(147,51,234,0.5)] border-2 border-white/20 hover:border-white/40 transition-all group"
+          className="fixed bottom-6 right-4 md:bottom-12 md:right-10 z-[60] w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(147,51,234,0.5)] border-2 border-white/20 hover:border-white/40 transition-all group"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse opacity-50 group-hover:opacity-100" />
           <span className="text-3xl relative z-10">🤖</span>

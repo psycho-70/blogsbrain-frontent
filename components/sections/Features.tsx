@@ -75,7 +75,7 @@ const Features = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl h-[600px] mx-auto px-4 relative z-10">
+      <div className="max-w-5xl min-h-[600px] h-auto mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

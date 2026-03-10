@@ -174,13 +174,13 @@ const Hero = () => {
       )}
 
       {/* Main Content */}
-      <div className={`relative z-20 h-[600px] mt-20 max-w-7xl mx-auto px-4 transition-all duration-1000 ${contentVisible ? 'opacity-100' : 'opacity-0'
+      <div className={`relative z-20 min-h-[600px] h-auto lg:h-[600px] py-10 lg:py-0 mt-20 max-w-7xl mx-auto px-4 flex items-center transition-all duration-1000 ${contentVisible ? 'opacity-100' : 'opacity-0'
         }`}>
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate={contentVisible ? "visible" : "hidden"}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full"
         >
           {/* Left Column: Text */}
           <div className="text-left">
