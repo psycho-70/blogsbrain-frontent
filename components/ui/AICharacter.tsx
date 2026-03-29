@@ -604,7 +604,13 @@ const AICharacter = () => {
           className="fixed bottom-6 right-4 md:bottom-12 md:right-10 z-[60] w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(147,51,234,0.5)] border-2 border-white/20 hover:border-white/40 transition-all group"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse opacity-50 group-hover:opacity-100" />
-          <span className="text-3xl relative z-10">🤖</span>
+          <span className="text-3xl relative z-10">
+            {/* <div className='absolute top-2 left-2' /> */}
+                  
+                     
+                    <img src="/robot3.png" width={40} height={40} alt="" />
+                    {/* </div> */}
+          </span>
 
           {/* Tooltip */}
           <div className="absolute right-full mr-4 px-3 py-1 bg-gray-900/90 text-white text-xs rounded-lg border border-purple-500/30 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
