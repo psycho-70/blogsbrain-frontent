@@ -472,11 +472,12 @@ const AICharacter = () => {
               <div className="p-4 border-b border-purple-500/30 bg-gradient-to-r from-purple-900/30 to-blue-900/30">
                 <div className="flex items-center space-x-3">
                   <div className="relative w-12 h-12">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse" />
-                    <div className="absolute inset-1 bg-gray-800 rounded-full flex items-center justify-center">
-                      <span className="text-2xl">🤖</span>
+                    <div className='absolute top-2 left-2' />
+                  
+                     
+                    <img src="/robot3.png" width={40} height={40} alt="" />
                     </div>
-                  </div>
+                
                   <div>
                     <h3 className="text-xl font-bold neon-text">Einsteine</h3>
                     <p className="text-sm text-purple-300">Your Intelligent Guide</p>
