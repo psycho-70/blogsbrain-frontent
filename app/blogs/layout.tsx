@@ -1,4 +1,4 @@
-import Tier1Guard from '@/components/ui/Tier1Guard'
+// import Tier1Guard from '@/components/ui/Tier1Guard'
 
 export default function BlogsLayout({
     children,
@@ -6,8 +6,10 @@ export default function BlogsLayout({
     children: React.ReactNode
 }) {
     return (
-        <Tier1Guard>
+        // <Tier1Guard>
+        <>
             {children}
-        </Tier1Guard>
+        </>
+        // </Tier1Guard>
     )
 }
