@@ -48,6 +48,11 @@ const features = [
 
 // Floating particles
 const Particles = () => {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  if (!mounted) return null
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {Array.from({ length: 18 }).map((_, i) => (

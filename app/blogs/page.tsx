@@ -188,7 +188,7 @@ export default function BlogsPage() {
 
         {/* Floating particles - Reused from Hero */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
-          {[...Array(10)].map((_, i) => (
+          {typeof window !== 'undefined' && [...Array(10)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20"

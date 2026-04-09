@@ -111,16 +111,28 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         return 3;
     };
 
-    const [visibleItems, setVisibleItems] = useState(calculateVisibleItems());
+    const [visibleItems, setVisibleItems] = useState(3); // Start with default
 
-    // Handle responsive visible items
+    // Handle responsive visible items and styles
     useEffect(() => {
+        setVisibleItems(calculateVisibleItems());
+
         const handleResize = () => {
             setVisibleItems(calculateVisibleItems());
         };
 
+        // Inject styles only on client
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = styles;
+        document.head.appendChild(styleSheet);
+
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            if (document.head.contains(styleSheet)) {
+                document.head.removeChild(styleSheet);
+            }
+        };
     }, []);
 
     // Function to scroll to specific index
@@ -415,11 +427,5 @@ const styles = `
   }
 `;
 
-// Add styles to head
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement("style");
-    styleSheet.innerText = styles;
-    document.head.appendChild(styleSheet);
-}
 
 export default CategorySlider;
