@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, Shield, LogIn, AlertCircle, Sparkles } from 'lucide-react'
@@ -272,6 +272,11 @@ export default function AdminLogin() {
   const [focusField, setFocusField] = useState<string | null>(null)
   const faceRef = useRef<HTMLDivElement>(null)
 
+  // Button dodge / shake state
+  const [btnX, setBtnX] = useState(0)        // horizontal offset in px
+  const [btnShake, setBtnShake] = useState(false) // wrong-password shake
+  const dodgeDir = useRef(1)                  // alternating dodge direction
+
   /* Mouse tracking */
   useEffect(() => {
     const move = (e: MouseEvent) => {
@@ -330,16 +335,43 @@ export default function AdminLogin() {
       } else {
         setExpression('angry')
         setError(data.message || 'Invalid credentials. Please try again.')
-        setTimeout(() => { setExpression('neutral'); setError('') }, 3500)
+        // Slide button to the left as a "punishment"
+        setBtnX(-120)
+        setBtnShake(true)
+        setTimeout(() => {
+          setBtnShake(false)
+          setBtnX(0)
+          setExpression('neutral')
+          setError('')
+        }, 3500)
       }
     } catch {
       setExpression('angry')
       setError('Network error. Please check your connection.')
-      setTimeout(() => { setExpression('neutral'); setError('') }, 3500)
+      setBtnX(-120)
+      setBtnShake(true)
+      setTimeout(() => {
+        setBtnShake(false)
+        setBtnX(0)
+        setExpression('neutral')
+        setError('')
+      }, 3500)
     } finally {
       setIsLoading(false)
     }
   }
+
+  /* Dodge handler – called when cursor enters the button while fields are empty */
+  const handleBtnMouseEnter = useCallback(() => {
+    const isEmpty = !credentials.email.trim() && !credentials.password.trim()
+    if (!isEmpty || isLoading) return
+    const maxDodge = 110
+    dodgeDir.current = dodgeDir.current * -1
+    setBtnX(prev => {
+      const next = prev + dodgeDir.current * (60 + Math.random() * 50)
+      return Math.max(-maxDodge, Math.min(maxDodge, next))
+    })
+  }, [credentials, isLoading])
 
   const hint =
     focusField === 'password' && !showPassword ? "🙈 I won't peek at your password!"
@@ -403,7 +435,7 @@ export default function AdminLogin() {
         />
         <div className="flex items-center justify-center">
 
-{/* <img src="/robot3.png" width={100} height={100} alt="" /> */}
+          {/* <img src="/robot3.png" width={100} height={100} alt="" /> */}
         </div>
         {/* Character */}
         <div ref={faceRef} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -542,47 +574,66 @@ export default function AdminLogin() {
             )}
           </AnimatePresence>
 
-          {/* Submit */}
-          <motion.button
-            type="submit"
-            disabled={isLoading}
-            whileHover={{ scale: 1.02, boxShadow: '0 8px 30px rgba(147,51,234,0.45)' }}
-            whileTap={{ scale: 0.97 }}
-            style={{
-              padding: '14px', borderRadius: '13px',
-              background: 'linear-gradient(135deg, #9333ea, #3b82f6)',
-              color: 'white', fontWeight: 700, fontSize: '15px',
-              border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              boxShadow: '0 4px 20px rgba(147,51,234,0.35)',
-              position: 'relative', overflow: 'hidden',
-              letterSpacing: '0.3px', marginTop: '4px',
-              opacity: isLoading ? 0.82 : 1,
-            }}
-          >
-            {/* Shimmer sweep */}
-            <motion.div
-              style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)' }}
-              animate={{ x: ['-100%', '100%'] }}
-              transition={{ repeat: Infinity, duration: 2.2, ease: 'linear' }}
-            />
-            <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '7px' }}>
-              {isLoading ? (
-                <>
-                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.85, ease: 'linear' }}>
-                    <div style={{ width: 18, height: 18, border: '2.5px solid white', borderTopColor: 'transparent', borderRadius: '50%' }} />
-                  </motion.div>
-                  Authenticating...
-                </>
-              ) : (
-                <><LogIn size={18} /> Sign In</>
-              )}
-            </span>
-          </motion.button>
+          {/* Submit – centered, smaller, dodges when empty, slides left on wrong password */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '4px' }}>
+            <motion.button
+              type="submit"
+              disabled={isLoading}
+              onMouseEnter={handleBtnMouseEnter}
+              animate={{
+                x: btnX,
+                rotate: btnShake ? [0, -6, 6, -4, 4, 0] : 0,
+              }}
+              transition={{
+                x: { type: 'spring', stiffness: 220, damping: 20 },
+                rotate: { duration: 0.45, ease: 'easeInOut' },
+              }}
+              whileHover={
+                !credentials.email.trim() && !credentials.password.trim()
+                  ? {}
+                  : { scale: 1.04, boxShadow: '0 8px 30px rgba(147,51,234,0.5)' }
+              }
+              whileTap={{ scale: 0.95 }}
+              style={{
+                padding: '11px 32px',
+                borderRadius: '13px',
+                background: 'linear-gradient(135deg, #9333ea, #3b82f6)',
+                color: 'white', fontWeight: 700, fontSize: '14px',
+                border: 'none',
+                cursor: isLoading ? 'not-allowed'
+                  : (!credentials.email.trim() && !credentials.password.trim()) ? 'none'
+                    : 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                boxShadow: '0 4px 20px rgba(147,51,234,0.35)',
+                position: 'relative', overflow: 'hidden',
+                letterSpacing: '0.3px',
+                opacity: isLoading ? 0.82 : 1,
+                minWidth: '130px',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Shimmer sweep */}
+              <motion.div
+                style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)' }}
+                animate={{ x: ['-100%', '100%'] }}
+                transition={{ repeat: Infinity, duration: 2.2, ease: 'linear' }}
+              />
+              <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '7px' }}>
+                {isLoading ? (
+                  <>
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.85, ease: 'linear' }}>
+                      <div style={{ width: 16, height: 16, border: '2.5px solid white', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                    </motion.div>
+                    Authenticating...
+                  </>
+                ) : (
+                  <><LogIn size={16} /> Sign In</>
+                )}
+              </span>
+            </motion.button>
+          </div>
 
-          {/* <p style={{ textAlign: 'center', fontSize: '11.5px', color: 'rgba(255,255,255,0.22)', margin: '2px 0 0' }}>
-            Default: admin@gmail.com / 123456
-          </p> */}
+
         </form>
       </motion.div>
     </div>

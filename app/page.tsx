@@ -6,14 +6,21 @@ import InteractiveAI from '@/components/sections/InteractiveAI'
 import CategorySlider from '@/components/sections/CategorySlider'
 import AffiliateSection from '@/components/sections/AffiliateSection'
 
+import GlobeStarsBackground from '@/components/ui/GlobeStarsBackground'
+
 export default function Home() {
   return (
-    <>
-      <Hero />
-      <Features />
+    <main className="relative min-h-screen z-10 overflow-hidden">
+      <div className="fixed  ">
+        <GlobeStarsBackground />
+      </div>
 
-      {/* Lower sections with shared background */}
-      {/* <div
+      <div className="relative">
+        <Hero />
+        <Features />
+
+        {/* Lower sections with shared background */}
+        {/* <div
         className="relative"
         style={{
           backgroundImage: "url('/bottomsection.svg')",
@@ -22,20 +29,21 @@ export default function Home() {
           backgroundRepeat: 'no-repeat'
         }}
       > */}
-      <InteractiveAI />
+        <InteractiveAI />
 
-      <CategorySlider
-        autoScrollSpeed={2000} // Faster scrolling (2 seconds)
-        pauseOnHover={false}   // Never pause on hover
-        showControls={true}    // Show navigation buttons
-        showDots={false}       // Hide dot indicators
-      />
+        <CategorySlider
+          autoScrollSpeed={2000} // Faster scrolling (2 seconds)
+          pauseOnHover={false}   // Never pause on hover
+          showControls={true}    // Show navigation buttons
+          showDots={false}       // Hide dot indicators
+        />
 
 
-      {/* <BlogsSection /> */}
-      <Stats />
-      <AffiliateSection />
-      {/* </div> */}
-    </>
+        {/* <BlogsSection /> */}
+        <Stats />
+        <AffiliateSection />
+        {/* </div> */}
+      </div>
+    </main>
   )
 }

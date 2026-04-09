@@ -1,11 +1,13 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import NeonButton from '../ui/NeonButton'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import TypeWriter from "../ui/Typewriter"
 import { useAI } from '@/contexts/AIContext'
-import BoxExplosion from './Boxexpo'
+import dynamic from 'next/dynamic'
+import GlobeStarsBackground from '../ui/GlobeStarsBackground'
+const GlobeMap = dynamic(() => import('../ui/GlobeMap'), { ssr: false })
 
 const words = ["Power of AI", "Future", "Innovation", "Intelligence"]
 
@@ -14,14 +16,25 @@ const Hero = () => {
   const [contentVisible, setContentVisible] = useState(false)
   const [glowIntensity, setGlowIntensity] = useState(1)
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
   const { triggerTourFromVideo, setShowAI, setMode } = useAI()
 
-  // words array moved outside or useMemo, but since it's static we can just move it out or keep as is if we handle callback properly. 
-  // Actually, easiest is to ensure handleTypewriterComplete doesn't trigger effect.
+  const playSound = () => {
+    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3')
+    audio.play().catch(e => console.error("Sound play failed", e))
+  }
 
-  // ... (variants logic omitted as it's fine) ...
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"]
+  })
+
+  const contentScale = useTransform(scrollYProgress, [0, 1], [1, 0.9])
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: {
@@ -31,7 +44,7 @@ const Hero = () => {
         staggerChildren: 0.3,
         delayChildren: 0.5,
         duration: 1.2,
-        ease: [0.215, 0.61, 0.355, 1.0]
+        ease: 'easeOut' as const,
       }
     }
   }
@@ -43,21 +56,7 @@ const Hero = () => {
       x: 0,
       transition: {
         duration: 1,
-        ease: [0.215, 0.61, 0.355, 1.0]
-      }
-    }
-  }
-
-  const imageVariants = {
-    hidden: { opacity: 0, x: 50, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      scale: 1,
-      transition: {
-        duration: 1.2,
-        ease: "easeOut",
-        delay: 0.8
+        ease: 'easeOut' as const,
       }
     }
   }
@@ -71,7 +70,6 @@ const Hero = () => {
 
     const animateGlow = () => {
       time += 0.02
-      // Multi-layered glow with different frequencies
       const intensity = 1 +
         Math.sin(time) * 0.15 +
         Math.sin(time * 1.5) * 0.1 +
@@ -91,13 +89,11 @@ const Hero = () => {
   const handleVideoEnded = () => {
     setVideoEnded(true)
     setTimeout(() => setContentVisible(true), 300)
-    // Trigger AI tour after a short delay
     setTimeout(() => {
       triggerTourFromVideo()
     }, 1500)
   }
 
-  // Use useCallback to prevent recreating this function on every render (frame) which resets Typewriter
   const handleTypewriterComplete = useCallback(() => {
     setTimeout(() => {
       setCurrentWordIndex((prev) => (prev + 1) % words.length)
@@ -106,8 +102,7 @@ const Hero = () => {
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.play().catch(e => {
-        console.log("Auto-play prevented, showing content immediately")
+      videoRef.current.play().catch(() => {
         setVideoEnded(true)
         setContentVisible(true)
       })
@@ -115,8 +110,8 @@ const Hero = () => {
   }, [])
 
   return (
-    <section id="hero" className="relative mt-20 flex items-center justify-center overflow-hidden">
-      {/* Video Background - Plays first */}
+    <section ref={sectionRef} id="hero" className="relative mt-20 flex items-center justify-center overflow-hidden">
+      {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video
           ref={videoRef}
@@ -126,15 +121,12 @@ const Hero = () => {
           onEnded={handleVideoEnded}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoEnded ? 'opacity-0' : 'opacity-100'
             }`}
-          style={{
-            objectFit: 'cover',
-            filter: 'brightness(0.4)'
-          }}
+          style={{ objectFit: 'cover', filter: 'brightness(0.4)' }}
         >
           <source src="/0202.mp4" type="video/mp4" />
         </video>
 
-        {/* Background - Shows after video ends */}
+        {/* Background after video */}
         <div
           className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${videoEnded ? 'opacity-100' : 'opacity-0'
             }`}
@@ -142,13 +134,11 @@ const Hero = () => {
             backgroundImage: "url('/herobackgrond.svg')",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundColor: '#000'
+            // backgroundColor: '#000'
           }}
         >
-          {/* Enhanced overlay for better text contrast */}
+          <GlobeStarsBackground />
           <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
-
-          {/* Animated gradient overlay for dynamic background */}
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
@@ -156,6 +146,7 @@ const Hero = () => {
         </div>
       </div>
 
+      {/* Skip intro button */}
       {!videoEnded && (
         <motion.button
           initial={{ opacity: 0 }}
@@ -174,8 +165,11 @@ const Hero = () => {
       )}
 
       {/* Main Content */}
-      <div className={`relative z-20 min-h-[600px] h-auto lg:h-[600px] py-10 lg:py-0 mt-20 max-w-7xl mx-auto px-4 flex items-center transition-all duration-1000 ${contentVisible ? 'opacity-100' : 'opacity-0'
-        }`}>
+      <motion.div
+        style={{ scale: contentScale, opacity: contentOpacity }}
+        className={`relative z-20 min-h-[600px] h-auto lg:h-[600px] py-10 lg:py-0 mt-20 max-w-7xl mx-auto px-4 flex items-center transition-all duration-1000 ${contentVisible ? 'opacity-100' : 'opacity-0'
+          }`}
+      >
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -202,8 +196,6 @@ const Hero = () => {
                     onComplete={handleTypewriterComplete}
                     className="relative"
                   />
-                  {/* Enhanced glow effect around the typing text - REMOVED per user request */}
-                  {/* <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 blur-xl opacity-30 animate-pulse" /> */}
                 </span>
               </h1>
             </motion.div>
@@ -246,18 +238,120 @@ const Hero = () => {
             </motion.div>
           </div>
 
-          {/* Right Column: Video */}
-          <motion.div variants={imageVariants} className="relative flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-lg aspect-video">
-              {/* <BoxExplosion /> */}
-              <img src="world2.png" alt="" />
+          {/* Right Column: 3D Globe */}
+          <motion.div
+            className="relative flex items-center justify-center lg:justify-end"
+            initial={{ opacity: 0, scale: 0.3 }}
+            animate={contentVisible
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 0, scale: 0.3 }
+            }
+            transition={{ type: 'spring', stiffness: 45, damping: 16, delay: 0.35 }}
+          >
+            {/*
+              KEY FIX:
+              - w-full + max-w-md gives the column a capped width
+              - aspect-square gives it an explicit height (equal to width)
+              - The inner div with w-full h-full rounded-full is the clipping circle
+              - GlobeMap mounts inside it and reads real clientWidth/clientHeight
+            */}
+            <div className="w-full max-w-md aspect-square relative">
+              {contentVisible ? (
+                <div
+                  className="w-full h-full"
+                // style={{
+                //   boxShadow: [
+                //     '0 0 0 1px rgba(147,51,234,0.15)',
+                //     '0 0 40px 8px rgba(147,51,234,0.22)',
+                //     '0 0 80px 20px rgba(59,130,246,0.12)',
+                //   ].join(', '),
+                // }}
+                >
+                  <GlobeMap contentVisible={contentVisible} />
+                </div>
+              ) : (
+                /* Skeleton placeholder while globe hasn't mounted yet */
+                <div
+                  className="w-full h-full  opacity-20 border-2 border-dashed border-purple-500/50"
+                  style={{
+                    background: 'radial-gradient(circle at 35% 35%, #0f0328 0%, #050010 100%)',
+                    boxShadow: '0 0 40px 8px rgba(147,51,234,0.12)',
+                  }}
+                />
+              )}
             </div>
           </motion.div>
-        </motion.div>
-      </div>
 
-      {/* Floating particles background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        </motion.div>
+      </motion.div>
+
+      {/* 3D Yellow Play Button */}
+      {contentVisible && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', delay: 1.2 }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 hidden lg:block"
+        >
+          <motion.button
+            whileHover={{ scale: 1.15, rotate: 5 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              playSound()
+              setIsPlayingVideo(true)
+            }}
+            className="relative group"
+          >
+            {/* 3D Depth */}
+            <div className="absolute inset-0 translate-y-2 bg-yellow-700 rounded-full blur-md opacity-40 group-hover:translate-y-3 transition-transform" />
+            <div className="absolute inset-0 translate-y-1.5 bg-yellow-800 rounded-full" />
+
+            {/* Button Body */}
+            <div className="relative w-20 h-20 bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 rounded-full border-4 border-white/20 flex items-center justify-center shadow-2xl group-active:translate-y-1 transition-transform overflow-hidden">
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full duration-700 transition-transform" />
+
+              <svg className="w-8 h-8 text-yellow-950 fill-current ml-1" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </motion.button>
+        </motion.div>
+      )}
+
+      {/* Video Modal Screen */}
+      {isPlayingVideo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-4xl aspect-video bg-gray-900 rounded-3xl overflow-hidden border-4 border-yellow-500 shadow-[0_0_80px_rgba(234,179,8,0.3)]"
+          >
+            <video
+              autoPlay
+              controls
+              className="w-full h-full object-contain"
+              onEnded={() => setIsPlayingVideo(false)}
+            >
+              <source src="/new.mp4" type="video/mp4" />
+            </video>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setIsPlayingVideo(false)}
+              className="absolute top-4 right-4 z-50 w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold hover:scale-110 transition-transform"
+            >
+              ✕
+            </button>
+
+            {/* Modal Glow */}
+            <div className="absolute -inset-10 bg-yellow-500/10 blur-[60px] pointer-events-none" />
+          </motion.div>
+        </div>
+      )}
+
+      {/* Floating particles */}
+      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
@@ -273,15 +367,10 @@ const Hero = () => {
             }}
           />
         ))}
-      </div>
+      </div> */}
 
-      {/* Custom Styles for Enhanced Effects */}
+      {/* Custom Styles */}
       <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(1deg); }
-        }
-
         @keyframes gradient-x {
           0%, 100% { transform: translateX(-100%); }
           50% { transform: translateX(100%); }
@@ -292,22 +381,13 @@ const Hero = () => {
           50% { transform: translateY(100%); }
         }
 
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
-        }
-
         @keyframes float-particle {
           0% {
             transform: translateY(0) translateX(0);
             opacity: 0;
           }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
           100% {
             transform: translateY(-100vh) translateX(calc(var(--random-x) * 100px));
             opacity: 0;
@@ -349,13 +429,13 @@ const Hero = () => {
 
         @keyframes typing-glow {
           0%, 100% {
-            box-shadow: 
+            box-shadow:
               0 0 20px rgba(255, 255, 255, 0.3),
               0 0 40px rgba(255, 255, 255, 0.2),
               0 0 60px rgba(255, 255, 255, 0.1);
           }
           50% {
-            box-shadow: 
+            box-shadow:
               0 0 40px rgba(255, 255, 255, 0.6),
               0 0 80px rgba(255, 255, 255, 0.4),
               0 0 120px rgba(255, 255, 255, 0.2);
@@ -372,10 +452,6 @@ const Hero = () => {
 
         .animate-gradient-y {
           animation: gradient-y 20s ease-in-out infinite;
-        }
-
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
         }
 
         .glow-text {
@@ -395,14 +471,8 @@ const Hero = () => {
                       inset 0 0 15px rgba(59, 130, 246, 0.2);
         }
 
-        /* Typewriter cursor glow */
         .typewriter-cursor {
           animation: typing-glow 1.5s ease-in-out infinite;
-        }
-
-        /* Smooth transitions */
-        .animate-float {
-          transition: transform 6s ease-in-out;
         }
       `}</style>
     </section>

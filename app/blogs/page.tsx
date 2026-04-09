@@ -1,20 +1,21 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import BlogCard from '@/components/ui/BlogCard'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import BlogCard3D from '@/components/ui/BlogCard3D'
 import NeonButton from '@/components/ui/NeonButton'
 import { motion } from 'framer-motion'
 import Typewriter from '@/components/ui/Typewriter'
+import ScrollSectionHeader from '@/components/ui/ScrollSectionHeader'
 import { getBlogs, getCategories, BlogListItem, CategoryItem } from '@/lib/api'
 import Link from 'next/link'
 
 const words = ["Insights", "Trending", "Knowledge", "Innovation"]
 
 export default function BlogsPage() {
-  const [selectedCategory, setSelectedCategory] = useState('All Topics')
+  const [selectedCategory, setSelectedCategory] = useState<any>({ name: 'All Topics', slug: 'all', id: null })
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [blogs, setBlogs] = useState<BlogListItem[]>([])
-  const [categories, setCategories] = useState<string[]>(['All Topics'])
+  const [categories, setCategories] = useState<any[]>([{ name: 'All Topics', slug: 'all', id: null }])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -31,8 +32,8 @@ export default function BlogsPage() {
         // Fetch categories
         try {
           const catRes = await getCategories()
-          const catNames = ['All Topics', ...catRes.categories.map((c: CategoryItem) => c.name)]
-          setCategories(catNames)
+          const catList = [{ name: 'All Topics', slug: 'all', id: null }, ...catRes.categories]
+          setCategories(catList)
         } catch (e) {
           console.error("Failed to load categories", e)
           // Fallback categories already set or remain empty
@@ -50,44 +51,33 @@ export default function BlogsPage() {
     initData()
   }, [])
 
-  // Fetch blogs when filters change
-  useEffect(() => {
-    // Debounce search could be added here, currently just triggering on category or simple effect
-    if (!loading) { // Avoid double fetch on init
-      fetchBlogs(1, true)
-    }
-  }, [selectedCategory])
+  const isInitialMount = useRef(true)
 
-  // Search handler (debounced in a real app, here simple enter or button click might be better, but we'll doing simple effect on query change for now or just submit)
-  // For simplicity, let's trigger search on 'Enter' or button, or just simple effect with debounce
+  // Combined effect for category and search changes
   useEffect(() => {
+    // Skip the very first render and let initData handle it
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
     const timer = setTimeout(() => {
-      if (!loading) fetchBlogs(1, true)
-    }, 500)
+      fetchBlogs(1, true)
+    }, searchQuery ? 500 : 50) // Small buffer for categories
+
     return () => clearTimeout(timer)
-  }, [searchQuery])
+  }, [selectedCategory.slug, searchQuery])
 
 
   const fetchBlogs = async (pageNum: number, reset: boolean) => {
     try {
       setLoading(true)
-      const catId = selectedCategory !== 'All Topics'
-        ? undefined // We might need to map name to ID if API requires ID. 
-        // My getBlogs takes category_id or slug. Let's try matching name?
-        // Ideally I should store category objects.
-        : undefined
-
-      // Just fetch all for now or filter if I can map it. 
-      // For this implementation, I will assume backend handles filtering or I need the full object.
-      // Let's rely on search for now if category ID mapping is complex without the object map.
-      // Actually, I should refine `categories` state to store objects.
-
       const res = await getBlogs({
         page: pageNum,
         per_page: 9,
         search: searchQuery,
-        // category_slug: selectedCategory !== 'All Topics' ? selectedCategory.toLowerCase().replace(/ /g, '-') : undefined 
-        // Better to update category logic later to specific IDs, but this is a start
+        category_id: selectedCategory.id || undefined,
+        category_slug: selectedCategory.slug !== 'all' ? selectedCategory.slug : undefined
       })
 
       if (reset) {
@@ -236,21 +226,21 @@ export default function BlogsPage() {
       </div>
 
       {/* Categories */}
-      <div className="container mx-auto px-4 mb-12">
+      <div className="container mx-auto px-4  py-10">
         <div className="flex flex-wrap gap-3 justify-center">
           {categories.map((category, index) => (
             <motion.button
-              key={category}
+              key={category.slug}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-3 rounded-full transition-all duration-300 ${selectedCategory === category
+              className={`px-6 py-3 rounded-full transition-all duration-300 ${selectedCategory.slug === category.slug
                 ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white shadow-lg shadow-purple-500/30'
                 : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50'
                 }`}
             >
-              {category}
+              {category.name}
             </motion.button>
           ))}
         </div>
@@ -272,54 +262,12 @@ export default function BlogsPage() {
             {blogs.map((blog, index) => (
               <motion.div
                 key={blog.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                viewport={{ once: true }}
               >
-                {/* BlogCard expects a specific shape, our API returns BlogListItem. 
-                      Need to ensure compatibility or map it. 
-                      Our mock data had 'featured_image' but API returns 'image'? Use any if needed or update Card.
-                      Checking api.ts BlogListItem has: id, title, slug, excerpt, category, is_published, views...
-                      It doesn't seem to have 'image' or 'featured_image' explicitly in the interface I saw?
-                      Wait, previous `api.ts` `BlogListItem` didn't show an image field.
-                      I should check `CategoryItem` has image.
-                      I'll just pass properties and if BlogCard needs image, I might need to update API or type.
-                      Let's assume the API returns an image or use a placeholder.
-                  */}
-                <Link href={`/blogs/${blog.slug || blog.id}`} className="block h-full">
-                  {/* Reusing existing BlogCard but might need props adjustment if types mismatch */}
-                  <div className="h-full bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all hover:-translate-y-2 group cursor-pointer">
-                    <div className="h-48 bg-gray-800 relative overflow-hidden">
-                      {blog.featured_image ? (
-                        <img
-                          src={blog.featured_image.startsWith('http') ? blog.featured_image : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}${blog.featured_image}`}
-                          alt={blog.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 to-blue-900/40 flex items-center justify-center">
-                          <span className="text-4xl opacity-50">📝</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60" />
-                    </div>
-                    <div className="p-6">
-                      <span className="text-xs font-semibold text-purple-400 bg-purple-900/30 px-3 py-1 rounded-full">
-                        {blog.category?.name || 'General'}
-                      </span>
-                      <h3 className="text-xl font-bold mt-4 mb-2 text-white group-hover:text-purple-400 transition-colors line-clamp-2">
-                        {blog.title}
-                      </h3>
-                      <p className="text-gray-400 text-sm line-clamp-3 mb-4">
-                        {blog.excerpt || 'No description available'}
-                      </p>
-                      <div className="flex justify-between items-center text-xs text-gray-500">
-                        <span>{new Date(blog.created_at || Date.now()).toLocaleDateString()}</span>
-                        <span>{blog.views} views</span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <BlogCard3D blog={blog} />
               </motion.div>
             ))}
           </div>
@@ -328,7 +276,7 @@ export default function BlogsPage() {
             <div className="text-6xl mb-4">🤖</div>
             <h3 className="text-2xl font-bold mb-2">No blogs found</h3>
             <p className="text-gray-400 mb-6">Try adjusting your search or filters</p>
-            <NeonButton onClick={() => { setSelectedCategory('All Topics'); setSearchQuery('') }}>
+            <NeonButton onClick={() => { setSelectedCategory({ name: 'All Topics', slug: 'all', id: null }); setSearchQuery('') }}>
               Reset Filters
             </NeonButton>
           </div>

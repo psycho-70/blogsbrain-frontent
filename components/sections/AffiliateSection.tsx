@@ -62,6 +62,8 @@ const TESTIMONIALS = [
     },
 ]
 
+import ScrollSectionHeader from '../ui/ScrollSectionHeader'
+
 export default function AffiliateSection() {
     const ref = useRef<HTMLDivElement>(null)
     const isInView = useInView(ref, { once: true, margin: '-100px' })
@@ -74,28 +76,12 @@ export default function AffiliateSection() {
             <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-pink-600/8 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 max-w-7xl mx-auto">
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.7 }}
-                    className="text-center mb-16"
-                >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/40 bg-purple-500/10 text-purple-300 text-sm font-medium mb-5">
-                        <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                        Affiliate Program
-                    </div>
-                    <h2 className="text-4xl sm:text-5xl font-black text-white leading-tight mb-5">
-                        Turn Your Network Into{' '}
-                        <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">
-                            Passive Income
-                        </span>
-                    </h2>
-                    <p className="text-gray-400 text-xl max-w-2xl mx-auto leading-relaxed">
-                        Join 5,000+ affiliates earning up to 40% recurring commissions by sharing
-                        Einsteine AI with their audience.
-                    </p>
-                </motion.div>
+                <ScrollSectionHeader
+                    badge="Affiliate Program"
+                    titlePrefix="Turn Your Network Into"
+                    titleHighlight="Passive Income"
+                    description="Join 5,000+ affiliates earning up to 40% recurring commissions by sharing Einsteine AI with their audience."
+                />
 
                 {/* Benefits Grid */}
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">

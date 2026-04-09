@@ -35,6 +35,8 @@ const dummyBlogs = [
   }
 ]
 
+import ScrollSectionHeader from '../ui/ScrollSectionHeader'
+
 export default function BlogsSection() {
   return (
     <section
@@ -45,20 +47,12 @@ export default function BlogsSection() {
       <div className="absolute bottom-20 left-0 w-72 h-72 bg-purple-600/10 rounded-full blur-[80px]"></div>
 
       <div className="container mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Latest <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Insights</span>
-          </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-            Stay ahead of the curve with our expert articles on AI, Technology, and Development.
-          </p>
-        </motion.div>
+        <ScrollSectionHeader
+          badge="Latest Insights"
+          titlePrefix="Discover"
+          titleHighlight="Our Perspective"
+          description="Stay ahead of the curve with our expert articles on AI, Technology, and Development."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {dummyBlogs.map((blog, index) => (

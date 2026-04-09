@@ -9,62 +9,66 @@ interface TypewriterProps {
   className?: string
 }
 
-export default function Typewriter({ text, speed = 30, onComplete, className = '' }: TypewriterProps) {
+export default function Typewriter({ text, speed = 60, onComplete, className = '' }: TypewriterProps) {
   const [displayed, setDisplayed] = useState('')
   const [done, setDone] = useState(false)
-  const [isFlashing, setIsFlashing] = useState(false)
 
-  // Use a ref for onComplete to avoid resetting the effect if the callback identity changess
+  // Stable ref for the callback so we don't restart the effect
   const onCompleteRef = useRef(onComplete)
-  useEffect(() => {
-    onCompleteRef.current = onComplete
-  }, [onComplete])
+  useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
   useEffect(() => {
     setDisplayed('')
     setDone(false)
-    setIsFlashing(false)
     let i = 0
     const timer = setInterval(() => {
       if (i < text.length) {
         setDisplayed(text.slice(0, i + 1))
         i++
-        // Trigger flash effect on certain characters
-        if (i % 3 === 0) {
-          setIsFlashing(true)
-          setTimeout(() => setIsFlashing(false), 100)
-        }
       } else {
         clearInterval(timer)
         setDone(true)
-        if (onCompleteRef.current) onCompleteRef.current()
+        onCompleteRef.current?.()
       }
     }, speed)
     return () => clearInterval(timer)
-  }, [text, speed]) // Removed onComplete from dependency
+  }, [text, speed])
 
   return (
-    <span className={`relative ${className}`}>
-      {/* Main text */}
-      <span className="relative z-10 text-white">
-        {displayed}
-      </span>
+    <span className={`relative inline-block ${className}`}>
+      {/* Visible text */}
+      <span className="relative z-10 text-white">{displayed}</span>
 
-      {/* Reduced glow effects for better readability */}
-      {isFlashing && (
-        <span className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/20 to-purple-500/0 blur-lg opacity-30 transition-opacity duration-100" />
-      )}
+      {/* Subtle static glow — no per-character flash */}
+      <span
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.08), transparent)',
+          filter: 'blur(12px)',
+        }}
+      />
 
-      {/* Pulsing glow behind text */}
-      <span className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-purple-400/5 to-pink-400/5 blur-xl animate-pulse" />
-
-      {/* Cursor with enhanced glow */}
+      {/* Blinking cursor */}
       {!done && (
-        <span className="inline-block w-[2px] h-8 ml-0.5 bg-gradient-to-b from-white via-purple-200 to-pink-200 typewriter-cursor relative">
-          <span className="absolute inset-0 bg-white blur-sm opacity-70" />
-          <span className="absolute inset-0 bg-gradient-to-b from-blue-400 via-purple-400 to-pink-400 blur-md opacity-50" />
-        </span>
+        <span
+          className="inline-block align-middle ml-[2px]"
+          style={{
+            width: 2,
+            height: '0.85em',
+            background: 'linear-gradient(to bottom, #fff, #c084fc)',
+            borderRadius: 2,
+            animation: 'tw-blink 1s step-start infinite',
+            boxShadow: '0 0 6px rgba(192,132,252,0.7)',
+          }}
+        />
       )}
+
+      <style>{`
+        @keyframes tw-blink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0; }
+        }
+      `}</style>
     </span>
   )
 }

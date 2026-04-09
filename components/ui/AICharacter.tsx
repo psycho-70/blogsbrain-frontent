@@ -8,7 +8,7 @@ import Typewriter from './Typewriter'
 import { einsteineChat } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
-
+import AnimatedRobot from './AnimatedRobot'
 const QUICK_ACTION_PROMPTS: Record<string, string> = {
   tour: 'Give me a quick 30-second tour of the platform.',
   find: "I'm looking for specific information. Help me find content for my level.",
@@ -301,14 +301,15 @@ const AICharacter = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 rounded-full blur-2xl animate-pulse" />
 
                   {/* Robot Image */}
-                  <Image
+                  {/* <Image
                     src="/robot3.png"
                     alt="Einsteine AI Guide"
                     width={120}
                     height={160}
                     className="relative z-10 drop-shadow-2xl"
                     priority
-                  />
+                  /> */}
+                  <AnimatedRobot mode="auto" size={150}  />
 
                   {/* Chat Button on Robot */}
                   <motion.button

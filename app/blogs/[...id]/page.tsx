@@ -5,8 +5,9 @@ import { useParams } from 'next/navigation'
 import { getBlog, BlogDetail } from '@/lib/api'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Clock, Calendar, User, Tag } from 'lucide-react'
+import { ArrowLeft, Clock, Calendar, User, Tag, ArrowRight } from 'lucide-react'
 import CommentSection from '@/components/comments/CommentSection'
+import BlogCard3D from '@/components/ui/BlogCard3D'
 
 
 import ReactMarkdown from 'react-markdown'
@@ -40,6 +41,7 @@ export default function BlogDetailPage() {
     const [blog, setBlog] = useState<BlogDetail | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [isContentExpanded, setIsContentExpanded] = useState(false)
 
     const hasFetched = useRef(false)
 
@@ -98,8 +100,12 @@ export default function BlogDetailPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 pt-24 pb-20">
-            <article className="container mx-auto px-4 max-w-4xl">
+        <div className="min-h-screen bg-[#050505] pt-24 pb-20 relative overflow-hidden">
+            {/* Background Glows */}
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+
+            <article className="container mx-auto px-4 max-w-4xl relative z-10">
                 {/* Back Link */}
                 <Link href="/blogs" className="inline-flex items-center text-gray-400 hover:text-white mb-8 transition-colors">
                     <ArrowLeft size={20} className="mr-2" />
@@ -178,11 +184,41 @@ export default function BlogDetailPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed"
+                    className="relative"
                 >
-                    <ReactMarkdown components={MarkdownComponents}>
-                        {blog.content}
-                    </ReactMarkdown>
+                    <div className={`prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed overflow-hidden transition-all duration-700 ${!isContentExpanded ? 'max-h-[800px]' : 'max-h-full'}`}>
+                        <ReactMarkdown components={MarkdownComponents}>
+                            {blog.content}
+                        </ReactMarkdown>
+                    </div>
+
+                    {!isContentExpanded && blog.content.length > 1000 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent flex items-end justify-center pb-4">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setIsContentExpanded(true)}
+                                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-full shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all flex items-center gap-2 group"
+                            >
+                                Continue Reading Article
+                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                            </motion.button>
+                        </div>
+                    )}
+
+                    {isContentExpanded && (
+                        <div className="mt-8 flex justify-center">
+                            <button
+                                onClick={() => {
+                                    setIsContentExpanded(false)
+                                    window.scrollTo({ top: 300, behavior: 'smooth' })
+                                }}
+                                className="text-gray-400 hover:text-white text-sm font-bold flex items-center gap-2 transition-colors"
+                            >
+                                <ArrowLeft size={16} /> Show Less
+                            </button>
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* Tags */}
@@ -202,7 +238,28 @@ export default function BlogDetailPage() {
                 )}
             </article>
 
-            {blog && <div className="container mx-auto px-4 max-w-4xl">
+            {/* Related Articles Section */}
+            {blog.related_blogs && blog.related_blogs.length > 0 && (
+                <section className="container mx-auto px-4 max-w-6xl mt-24">
+                    <div className="flex items-center justify-between mb-12">
+                        <div>
+                            <h2 className="text-3xl font-black text-white">Continue Reading</h2>
+                            <p className="text-gray-400 mt-2">More insights you might find interesting</p>
+                        </div>
+                        <Link href="/blogs" className="hidden sm:flex items-center gap-2 text-purple-400 font-bold hover:text-purple-300 transition-colors">
+                            View All <ArrowRight size={20} />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {blog.related_blogs.slice(0, 3).map((relatedBlog) => (
+                            <BlogCard3D key={relatedBlog.id} blog={relatedBlog} />
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {blog && <div className="container mx-auto px-4 max-w-4xl mt-20">
                 <CommentSection blogId={blog.id} />
             </div>}
         </div>

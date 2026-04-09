@@ -1,0 +1,163 @@
+
+<style>
+#robotStage{display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px 0;}
+#robotWrap{position:relative;width:220px;height:280px;}
+#robotImg{position:absolute;top:0;left:0;width:220px;height:280px;object-fit:contain;transform-origin:50% 95%;image-rendering:auto;}
+#eyeL,#eyeR{position:absolute;border-radius:50%;background:radial-gradient(circle at 40% 35%,#a0d8ff,#1a8fff,#0044cc);box-shadow:0 0 12px 4px #3af,0 0 24px 8px #06f8;pointer-events:none;}
+#eyeL{width:30px;height:22px;top:74px;left:52px;}
+#eyeR{width:30px;height:22px;top:74px;right:52px;}
+#blinkL,#blinkR{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;background:#d4aa40;transform:scaleY(0);transform-origin:50% 50%;}
+#chestGlow{position:absolute;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#fff 10%,#3af 50%,transparent 80%);box-shadow:0 0 18px 6px #3af,0 0 36px 12px #06f4;top:163px;left:50%;transform:translateX(-50%);pointer-events:none;}
+#antGlow1,#antGlow2{position:absolute;width:9px;height:9px;border-radius:50%;background:#ffe066;box-shadow:0 0 10px 4px #ffd700,0 0 20px 8px #ffa500;}
+#antGlow1{top:2px;left:68px;}
+#antGlow2{top:2px;right:68px;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+button.anim-btn{padding:8px 16px;border-radius:8px;border:1px solid #d4aa40;background:#1a1200;color:#ffd700;font-size:13px;cursor:pointer;transition:background .2s;}
+button.anim-btn:hover{background:#2a1f00;}
+button.anim-btn.active{background:#d4aa40;color:#1a1200;}
+#statusLabel{font-size:12px;color:#aaa;min-height:18px;}
+</style>
+
+<div id="robotStage">
+  <div id="robotWrap">
+    <img id="robotImg" src="/robot3.png" alt="Einsteine robot" />
+    <div id="eyeL"><div id="blinkL"></div></div>
+    <div id="eyeR"><div id="blinkR"></div></div>
+    <div id="chestGlow"></div>
+    <div id="antGlow1"></div>
+    <div id="antGlow2"></div>
+  </div>
+  <div id="statusLabel">Idle — choose an action</div>
+  <div class="btn-row">
+    <button class="anim-btn" id="btnWave">Wave hello</button>
+    <button class="anim-btn" id="btnShake">Shake hand</button>
+    <button class="anim-btn" id="btnDance">Dance</button>
+    <button class="anim-btn" id="btnSpin">Spin</button>
+    <button class="anim-btn" id="btnIdle">Idle</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const img = document.getElementById('robotImg');
+const chestGlow = document.getElementById('chestGlow');
+const antGlow1 = document.getElementById('antGlow1');
+const antGlow2 = document.getElementById('antGlow2');
+const blinkL = document.getElementById('blinkL');
+const blinkR = document.getElementById('blinkR');
+const statusLabel = document.getElementById('statusLabel');
+const btns = document.querySelectorAll('.anim-btn');
+
+let mode = 'idle';
+let t = 0;
+let raf;
+
+function setActive(id){
+  btns.forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function lerp(a,b,f){return a+(b-a)*f;}
+
+function blink(strength){
+  blinkL.style.transform = `scaleY(${strength})`;
+  blinkR.style.transform = `scaleY(${strength})`;
+}
+
+function autoBlink(t){
+  const cycle = t % 4;
+  if(cycle < 0.12) return Math.sin((cycle/0.12)*Math.PI);
+  return 0;
+}
+
+function setGlow(intensity){
+  const s = 0.5 + 0.5*intensity;
+  chestGlow.style.opacity = s;
+  antGlow1.style.opacity = s;
+  antGlow2.style.opacity = s;
+}
+
+function applyTransform({tx=0,ty=0,rot=0,scaleX=1,scaleY=1,armRot=0}={}){
+  img.style.transform = `translate(${tx}px,${ty}px) rotate(${rot}deg) scaleX(${scaleX}) scaleY(${scaleY})`;
+}
+
+function animate(timestamp){
+  t = timestamp / 1000;
+  const blinkVal = autoBlink(t);
+
+  if(mode==='idle'){
+    const hover = Math.sin(t*1.4)*5;
+    const sway  = Math.sin(t*0.7)*1.2;
+    applyTransform({ty:hover, rot:sway});
+    blink(blinkVal);
+    setGlow(0.7 + 0.3*Math.sin(t*2));
+    statusLabel.textContent = 'Idle — floating peacefully';
+  }
+
+  else if(mode==='wave'){
+    const hover = Math.sin(t*1.4)*4;
+    const wave  = Math.sin(t*5)*14;
+    const lean  = Math.sin(t*5)*3;
+    applyTransform({ty:hover, rot:lean});
+    img.style.transform += ` translateX(${Math.sin(t*3)*3}px)`;
+    blink(blinkVal);
+    setGlow(0.8 + 0.2*Math.sin(t*4));
+    statusLabel.textContent = `Waving hello! (arm angle ${wave.toFixed(0)}°)`;
+  }
+
+  else if(mode==='shake'){
+    const shakeX = Math.sin(t*10)*6 * Math.max(0,Math.sin(t*1.5));
+    const shakeY = Math.cos(t*8)*3;
+    const leanShake = Math.sin(t*10)*4;
+    applyTransform({tx:shakeX, ty:shakeY, rot:leanShake});
+    blink(blinkVal || (Math.sin(t*8)>0.9 ? 0.8 : 0));
+    setGlow(0.6 + 0.4*Math.abs(Math.sin(t*5)));
+    statusLabel.textContent = 'Shaking hands firmly!';
+  }
+
+  else if(mode==='dance'){
+    const bounce = Math.abs(Math.sin(t*3.5))*-12;
+    const tilt   = Math.sin(t*3.5)*12;
+    const sX     = 1 + Math.sin(t*7)*0.04;
+    const sY     = 1 - Math.abs(Math.sin(t*7))*0.06;
+    applyTransform({ty:bounce, rot:tilt, scaleX:sX, scaleY:sY});
+    blink(blinkVal);
+    setGlow(0.5 + 0.5*Math.abs(Math.sin(t*6)));
+    antGlow1.style.transform = `rotate(${t*180}deg)`;
+    antGlow2.style.transform = `rotate(${-t*180}deg)`;
+    statusLabel.textContent = 'Dancing! Groove groove!';
+  }
+
+  else if(mode==='spin'){
+    const spinDeg = (t * 180) % 360;
+    const scX = Math.cos(spinDeg * Math.PI/180);
+    const hover = Math.sin(t*2)*4;
+    applyTransform({ty:hover, scaleX: scX < 0 ? -1 : 1});
+    img.style.transform = `translateY(${hover}px) rotateY(${spinDeg}deg)`;
+    img.style.transition = 'none';
+    blink(blinkVal);
+    setGlow(0.4 + 0.6*Math.abs(Math.sin(t*3)));
+    statusLabel.textContent = `Spinning! (${Math.floor(spinDeg)}°)`;
+  }
+
+  raf = requestAnimationFrame(animate);
+}
+
+function setMode(m, btnId, label){
+  mode = m;
+  setActive(btnId);
+  antGlow1.style.transform = '';
+  antGlow2.style.transform = '';
+  img.style.transition = 'transform 0.3s ease';
+}
+
+document.getElementById('btnWave').onclick = ()=>setMode('wave','btnWave');
+document.getElementById('btnShake').onclick = ()=>setMode('shake','btnShake');
+document.getElementById('btnDance').onclick = ()=>setMode('dance','btnDance');
+document.getElementById('btnSpin').onclick = ()=>setMode('spin','btnSpin');
+document.getElementById('btnIdle').onclick = ()=>setMode('idle','btnIdle');
+
+setActive('btnIdle');
+raf = requestAnimationFrame(animate);
+})();
+</script>

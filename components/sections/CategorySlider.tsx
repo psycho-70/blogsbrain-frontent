@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ScrollSectionHeader from '../ui/ScrollSectionHeader';
 
 // Types defined inside the component
 interface SliderItem {
@@ -250,13 +251,17 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
     return (
         <>
 
-            <div className="w-full bg-transparent mx-auto px-4 py-8 relative">
+            <div className="w-full bg-transparent mx-auto py-12 relative">
                 <div className='max-w-7xl mx-auto'>
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                        <div>
-                            <h2 className="text-2xl sm:text-3xl font-bold text-white">Latest Articles</h2>
-                            <p className="text-gray-400 mt-2">Discover our most recent blog posts</p>
-                        </div>
+                    <ScrollSectionHeader
+                        badge="Insights"
+                        titlePrefix="Explore"
+                        titleHighlight="Latest Articles"
+                        description="Discover our most recent blog posts and stay updated with AI news."
+                    />
+
+                    <div className="flex justify-between items-center mb-4 px-4">
+                        <div />
 
                         {/* Navigation Controls */}
                         {showControls && (
@@ -321,10 +326,10 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
                                             <img
                                                 src={item.imageUrl}
                                                 alt={item.title}
-                                                fill
+
                                                 sizes="(max-width: 320px) 100vw, 320px"
                                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                                priority={index < 3}
+                                            // priority={index < 3}
                                             />
                                             {/* Gradient Overlay */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
