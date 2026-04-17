@@ -273,7 +273,7 @@ export default function AdminLogin() {
   const faceRef = useRef<HTMLDivElement>(null)
 
   // Button dodge / shake state
-  const [btnX, setBtnX] = useState(0)        // horizontal offset in px
+  const [btnTransform, setBtnTransform] = useState({ x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 })
   const [btnShake, setBtnShake] = useState(false) // wrong-password shake
   const dodgeDir = useRef(1)                  // alternating dodge direction
 
@@ -335,12 +335,18 @@ export default function AdminLogin() {
       } else {
         setExpression('angry')
         setError(data.message || 'Invalid credentials. Please try again.')
-        // Slide button to the left as a "punishment"
-        setBtnX(-120)
+        // 3D dodge "punishment" on error
+        setBtnTransform({
+          x: (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 60),
+          y: (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 40),
+          rotateX: (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 30),
+          rotateY: (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 30),
+          rotateZ: (Math.random() > 0.5 ? 1 : -1) * 20
+        })
         setBtnShake(true)
         setTimeout(() => {
           setBtnShake(false)
-          setBtnX(0)
+          setBtnTransform({ x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 })
           setExpression('neutral')
           setError('')
         }, 3500)
@@ -348,11 +354,17 @@ export default function AdminLogin() {
     } catch {
       setExpression('angry')
       setError('Network error. Please check your connection.')
-      setBtnX(-120)
+      setBtnTransform({
+        x: (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 60),
+        y: (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 40),
+        rotateX: (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 30),
+        rotateY: (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 30),
+        rotateZ: (Math.random() > 0.5 ? 1 : -1) * 20
+      })
       setBtnShake(true)
       setTimeout(() => {
         setBtnShake(false)
-        setBtnX(0)
+        setBtnTransform({ x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 })
         setExpression('neutral')
         setError('')
       }, 3500)
@@ -361,17 +373,32 @@ export default function AdminLogin() {
     }
   }
 
-  /* Dodge handler – called when cursor enters the button while fields are empty */
+  /* Dodge handler – called when cursor enters the button while fields are empty OR wrong */
   const handleBtnMouseEnter = useCallback(() => {
-    const isEmpty = !credentials.email.trim() && !credentials.password.trim()
-    if (!isEmpty || isLoading) return
-    const maxDodge = 110
+    const shouldDodge = !credentials.email.trim() || !credentials.password.trim() || !!error
+    if (!shouldDodge || isLoading) return
+
     dodgeDir.current = dodgeDir.current * -1
-    setBtnX(prev => {
-      const next = prev + dodgeDir.current * (60 + Math.random() * 50)
-      return Math.max(-maxDodge, Math.min(maxDodge, next))
+    setBtnTransform(prev => {
+      const x = prev.x + dodgeDir.current * (70 + Math.random() * 70)
+      const y = prev.y + (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 50)
+      const rotateX = (Math.random() > 0.5 ? 1 : -1) * (25 + Math.random() * 35)
+      const rotateY = dodgeDir.current * (25 + Math.random() * 35)
+      const rotateZ = (Math.random() - 0.5) * 40
+
+      return {
+        x: Math.max(-140, Math.min(140, x)),
+        y: Math.max(-80, Math.min(80, y)),
+        rotateX, rotateY, rotateZ
+      }
     })
-  }, [credentials, isLoading])
+  }, [credentials, isLoading, error])
+
+  useEffect(() => {
+    if (focusField) {
+      setBtnTransform({ x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0 })
+    }
+  }, [focusField])
 
   const hint =
     focusField === 'password' && !showPassword ? "🙈 I won't peek at your password!"
@@ -574,22 +601,28 @@ export default function AdminLogin() {
             )}
           </AnimatePresence>
 
-          {/* Submit – centered, smaller, dodges when empty, slides left on wrong password */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '4px' }}>
+          {/* Submit – centered, smaller, dodges when empty or wrong password */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '4px', perspective: 1000 }}>
             <motion.button
               type="submit"
               disabled={isLoading}
               onMouseEnter={handleBtnMouseEnter}
               animate={{
-                x: btnX,
-                rotate: btnShake ? [0, -6, 6, -4, 4, 0] : 0,
+                x: btnTransform.x,
+                y: btnTransform.y,
+                rotateX: btnTransform.rotateX,
+                rotateY: btnTransform.rotateY,
+                rotateZ: btnShake ? [0, -10, 10, -8, 8, 0] : btnTransform.rotateZ,
               }}
               transition={{
-                x: { type: 'spring', stiffness: 220, damping: 20 },
-                rotate: { duration: 0.45, ease: 'easeInOut' },
+                x: { type: 'spring', stiffness: 220, damping: 15 },
+                y: { type: 'spring', stiffness: 220, damping: 15 },
+                rotateX: { type: 'spring', stiffness: 220, damping: 15 },
+                rotateY: { type: 'spring', stiffness: 220, damping: 15 },
+                rotateZ: { duration: 0.45, ease: 'easeInOut' },
               }}
               whileHover={
-                !credentials.email.trim() && !credentials.password.trim()
+                (!credentials.email.trim() || !credentials.password.trim() || error)
                   ? {}
                   : { scale: 1.04, boxShadow: '0 8px 30px rgba(147,51,234,0.5)' }
               }
@@ -601,7 +634,7 @@ export default function AdminLogin() {
                 color: 'white', fontWeight: 700, fontSize: '14px',
                 border: 'none',
                 cursor: isLoading ? 'not-allowed'
-                  : (!credentials.email.trim() && !credentials.password.trim()) ? 'none'
+                  : (!credentials.email.trim() || !credentials.password.trim() || error) ? 'default'
                     : 'pointer',
                 display: 'inline-flex', alignItems: 'center', gap: '7px',
                 boxShadow: '0 4px 20px rgba(147,51,234,0.35)',
@@ -610,6 +643,7 @@ export default function AdminLogin() {
                 opacity: isLoading ? 0.82 : 1,
                 minWidth: '130px',
                 justifyContent: 'center',
+                transformStyle: 'preserve-3d'
               }}
             >
               {/* Shimmer sweep */}

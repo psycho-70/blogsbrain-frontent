@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { Clock, Eye, ArrowRight, ChevronDown, ChevronUp, Calendar } from 'lucide-react'
@@ -21,6 +21,11 @@ interface BlogCard3DProps {
 
 export default function BlogCard3D({ blog }: BlogCard3DProps) {
     const [isExpanded, setIsExpanded] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // Tilt animation logic
     const x = useMotionValue(0)
@@ -68,11 +73,14 @@ export default function BlogCard3D({ blog }: BlogCard3DProps) {
                 {/* Image Container with Parallax Effect */}
                 <div className="relative h-56 w-full overflow-hidden" style={{ transform: "translateZ(30px)" }}>
                     {imageUrl ? (
+
+
                         <img
                             src={imageUrl}
                             alt={blog.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            className="w-full h-full cursor-pointer object-cover transition-transform duration-700 group-hover:scale-110"
                         />
+
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-blue-900/50 flex items-center justify-center">
                             <span className="text-5xl opacity-40">📝</span>
@@ -95,12 +103,12 @@ export default function BlogCard3D({ blog }: BlogCard3DProps) {
                     <div className="flex items-center gap-4 text-[11px] text-gray-500 mb-4 font-semibold uppercase tracking-wider">
                         <span className="flex items-center gap-1"><Clock size={12} className="text-purple-500" /> {blog.reading_time || 5} MIN</span>
                         <span className="flex items-center gap-1"><Eye size={12} className="text-blue-500" /> {blog.views} VIEWS</span>
-                        <span className="flex items-center gap-1"><Calendar size={12} className="text-pink-500" /> {new Date(blog.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                        <span className="flex items-center gap-1"><Calendar size={12} className="text-pink-500" /> {mounted ? new Date(blog.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '...'}</span>
                     </div>
 
-                    <h3 className="text-2xl font-black text-white mb-3 line-clamp-2 leading-tight group-hover:text-purple-400 transition-colors">
+                    <a href={`/blogs/${blog.slug}`}> <h3 className="text-2xl font-black text-white mb-3 line-clamp-2 leading-tight group-hover:text-purple-400 transition-colors">
                         {blog.title}
-                    </h3>
+                    </h3></a>
 
                     <div className="relative mb-6">
                         <p className={`text-gray-400 text-sm leading-relaxed transition-all duration-300 ${isExpanded ? '' : 'line-clamp-2'}`}>

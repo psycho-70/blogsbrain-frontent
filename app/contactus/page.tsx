@@ -5,6 +5,7 @@ import { useState, useCallback } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Typewriter from '@/components/ui/Typewriter';
+import CTAButton from '@/components/ui/CTAButton';
 import { submitContactForm } from '@/lib/api';
 
 
@@ -356,12 +357,11 @@ export default function ContactPage() {
                                     />
                                 </div>
 
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                                <CTAButton
+                                    buttonId="contact-submit"
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-lg font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] !bg-none"
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -374,7 +374,7 @@ export default function ContactPage() {
                                             Send Message
                                         </>
                                     )}
-                                </motion.button>
+                                </CTAButton>
 
                                 {/* Error message */}
                                 {submitError && (
@@ -414,9 +414,9 @@ export default function ContactPage() {
                                 <MapPin className="w-16 h-16 text-blue-500 mx-auto mb-4" />
                                 <h3 className="text-xl font-bold text-white mb-2">123 Tech Street</h3>
                                 <p className="text-gray-400">San Francisco, CA 94107</p>
-                                <button className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <CTAButton buttonId="contact-open-maps" className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors z-10 relative">
                                     Open in Maps
-                                </button>
+                                </CTAButton>
                             </div>
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/50 to-transparent pointer-events-none"></div>

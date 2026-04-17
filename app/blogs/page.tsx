@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import BlogCard3D from '@/components/ui/BlogCard3D'
-import NeonButton from '@/components/ui/NeonButton'
+import CTAButton from '@/components/ui/CTAButton'
 import { motion } from 'framer-motion'
 import Typewriter from '@/components/ui/Typewriter'
 import ScrollSectionHeader from '@/components/ui/ScrollSectionHeader'
@@ -53,6 +53,12 @@ export default function BlogsPage() {
 
   const isInitialMount = useRef(true)
 
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Combined effect for category and search changes
   useEffect(() => {
     // Skip the very first render and let initData handle it
@@ -74,7 +80,7 @@ export default function BlogsPage() {
       setLoading(true)
       const res = await getBlogs({
         page: pageNum,
-        per_page: 9,
+        per_page: 6,
         search: searchQuery,
         category_id: selectedCategory.id || undefined,
         category_slug: selectedCategory.slug !== 'all' ? selectedCategory.slug : undefined
@@ -188,7 +194,7 @@ export default function BlogsPage() {
 
         {/* Floating particles - Reused from Hero */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
-          {typeof window !== 'undefined' && [...Array(10)].map((_, i) => (
+          {mounted && [...Array(10)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20"
@@ -276,22 +282,22 @@ export default function BlogsPage() {
             <div className="text-6xl mb-4">🤖</div>
             <h3 className="text-2xl font-bold mb-2">No blogs found</h3>
             <p className="text-gray-400 mb-6">Try adjusting your search or filters</p>
-            <NeonButton onClick={() => { setSelectedCategory({ name: 'All Topics', slug: 'all', id: null }); setSearchQuery('') }}>
+            <CTAButton buttonId="blogs-reset-filters" onClick={() => { setSelectedCategory({ name: 'All Topics', slug: 'all', id: null }); setSearchQuery('') }}>
               Reset Filters
-            </NeonButton>
+            </CTAButton>
           </div>
         )}
 
         {/* Load More */}
         {hasMore && !loading && (
           <div className="text-center mt-16">
-            <NeonButton
-              variant="outline"
+            <CTAButton
+              buttonId="blogs-load-more"
+              className="px-8 py-4 bg-transparent border-2 border-purple-500 hover:border-blue-500 text-white !bg-none"
               onClick={handleLoadMore}
-              className="px-8 py-4"
             >
               Load More Blogs
-            </NeonButton>
+            </CTAButton>
           </div>
         )}
         {loading && blogs.length > 0 && (

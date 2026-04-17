@@ -20,7 +20,7 @@ export default function AdvancedCursor() {
 
     // Three trail configs — speed, color offset, line width
     const trailConfigs = [
-      { lerp: 0.12, colorOffset: 0,    lineWidth: 1,   cx: 0, cy: 0 },
+      { lerp: 0.12, colorOffset: 0, lineWidth: 1, cx: 0, cy: 0 },
       { lerp: 0.07, colorOffset: 0.33, lineWidth: 0.7, cx: 0, cy: 0 },
       { lerp: 0.04, colorOffset: 0.66, lineWidth: 0.4, cx: 0, cy: 0 },
     ]
@@ -55,6 +55,13 @@ export default function AdvancedCursor() {
     window.addEventListener("mousemove", (e) => {
       mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1
       mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1
+
+      const dot = document.getElementById('custom-cursor-dot')
+      if (dot) {
+        dot.style.opacity = '1'
+        dot.style.left = `${e.clientX}px`
+        dot.style.top = `${e.clientY}px`
+      }
     })
 
     // Background particles
@@ -62,7 +69,7 @@ export default function AdvancedCursor() {
     const particlesCount = 200
     const posArray = new Float32Array(particlesCount * 3)
     for (let i = 0; i < particlesCount * 3; i += 3) {
-      posArray[i]     = (Math.random() - 0.5) * 150
+      posArray[i] = (Math.random() - 0.5) * 150
       posArray[i + 1] = (Math.random() - 0.5) * 150
       posArray[i + 2] = (Math.random() - 0.5) * 150
     }
@@ -103,7 +110,7 @@ export default function AdvancedCursor() {
         for (let i = 0; i < maxPoints; i++) {
           const hue = ((i / maxPoints) + colorTime + trail.colorOffset) % 1
           const color = new THREE.Color().setHSL(hue, 1, 0.6)
-          colorAttr.array[i * 3]     = color.r
+          colorAttr.array[i * 3] = color.r
           colorAttr.array[i * 3 + 1] = color.g
           colorAttr.array[i * 3 + 2] = color.b
         }
@@ -127,7 +134,7 @@ export default function AdvancedCursor() {
 
     return () => {
       window.removeEventListener("resize", resize)
-      window.removeEventListener("mousemove", () => {})
+      window.removeEventListener("mousemove", () => { })
       mountRef.current?.removeChild(renderer.domElement)
       renderer.dispose()
       trails.forEach(t => {
@@ -140,18 +147,36 @@ export default function AdvancedCursor() {
   return (
     <>
       <style jsx global>{`
-        body { cursor: auto !important; }
+        * {
+          cursor: none !important;
+        }
         canvas {
           display: block;
           position: fixed;
           top: 0;
           left: 0;
           pointer-events: none;
-          z-index: 9999;
+          z-index: 9998;
           background: transparent !important;
         }
+        .custom-cursor-dot {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 8px;
+          height: 8px;
+          background-color: white;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+          z-index: 9999;
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px #8b5cf6;
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
       `}</style>
-      <div ref={mountRef} className="fixed top-0 left-0 pointer-events-none z-[9999]" style={{ background: 'transparent' }} />
+      <div id="custom-cursor-dot" className="custom-cursor-dot" />
+      <div ref={mountRef} className="fixed top-0 left-0 pointer-events-none z-[9998]" style={{ background: 'transparent' }} />
     </>
   )
 }

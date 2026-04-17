@@ -16,6 +16,7 @@ const Dashboard = () => {
     totalViews: 0
   })
   const [recentBlogs, setRecentBlogs] = useState<BlogListItem[]>([])
+  const [ctaStats, setCtaStats] = useState<{ id: number, buttonId: string, clickCount: number }[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<{ username: string, profile_image?: string } | null>(null)
 
@@ -46,6 +47,16 @@ const Dashboard = () => {
           totalViews: data.stats.total_views
         })
         setRecentBlogs(data.latest_blogs)
+
+        // Fetch CTA Stats
+        try {
+          const ctaRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}/api/cta/stats`)
+          if (ctaRes.ok) {
+            setCtaStats(await ctaRes.json())
+          }
+        } catch (e) {
+          console.error('Failed to fetch CTA stats:', e)
+        }
       } catch (err) {
         console.error('Failed to fetch dashboard stats:', err)
       } finally {
@@ -182,6 +193,37 @@ const Dashboard = () => {
                 <Link href="/admin/comments" className="block w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium">
                   💬 Moderate Comments
                 </Link>
+              </div>
+            </div>
+
+            {/* CTA Stats */}
+            <div className="bg-gray-800/20 backdrop-blur-md rounded-2xl border border-white/5 p-6">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <span>🖱️</span> CTA Click Stats
+              </h3>
+              <div className="space-y-3">
+                {ctaStats.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="text-xs text-gray-400 uppercase bg-gray-700/30">
+                        <tr>
+                          <th className="px-3 py-2 rounded-l-lg">Button ID</th>
+                          <th className="px-3 py-2 rounded-r-lg text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ctaStats.map(stat => (
+                          <tr key={stat.id} className="border-b border-white/5 last:border-0 hover:bg-gray-700/20 transition-colors">
+                            <td className="px-3 py-3 font-medium text-gray-200">{stat.buttonId}</td>
+                            <td className="px-3 py-3 text-purple-400 font-bold text-right">{stat.clickCount}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500 text-center py-6 border border-dashed border-white/10 rounded-xl">No CTA clicks yet</div>
+                )}
               </div>
             </div>
           </div>

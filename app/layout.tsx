@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" >
-      <body className={`${inter.className} min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 bg-fixed text-white overflow-x-hidden`}>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${inter.className} min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 bg-fixed text-white overflow-x-hidden`}>
         <AIProvider>
           <TourProvider>
             <CustomCursor />

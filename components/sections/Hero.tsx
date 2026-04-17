@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useScroll, useTransform } from 'framer-motion'
-import NeonButton from '../ui/NeonButton'
+import CTAButton from '../ui/CTAButton'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import TypeWriter from "../ui/Typewriter"
 import { useAI } from '@/contexts/AIContext'
@@ -110,7 +110,7 @@ const Hero = () => {
   }, [])
 
   return (
-    <section ref={sectionRef} id="hero" className="relative mt-20 flex items-center justify-center overflow-hidden">
+    <section ref={sectionRef} id="hero" className="relative mt-20 flex items-center justify-center overflow-hidden bg-black">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video
@@ -134,7 +134,7 @@ const Hero = () => {
             backgroundImage: "url('/herobackgrond.svg')",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            // backgroundColor: '#000'
+            backgroundColor: '#000'
           }}
         >
           <GlobeStarsBackground />
@@ -216,16 +216,17 @@ const Hero = () => {
               variants={itemVariants}
               className="flex flex-col sm:flex-row gap-5"
             >
-              <NeonButton
+              <CTAButton
+                buttonId="hero-start-exploring"
                 onClick={() => window.location.href = '/blogs'}
                 className="text-lg px-8 py-4 glow-button"
               >
                 <span className="relative z-10">🚀 Start Exploring</span>
                 <span className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-70" />
-              </NeonButton>
+              </CTAButton>
 
-              <NeonButton
-                variant="outline"
+              <CTAButton
+                buttonId="hero-meet-einsteine"
                 onClick={() => {
                   setMode('chat')
                   setShowAI(true)
@@ -234,7 +235,7 @@ const Hero = () => {
               >
                 <span className="relative z-10">🤖 Meet Einsteine</span>
                 <span className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-md opacity-50" />
-              </NeonButton>
+              </CTAButton>
             </motion.div>
           </div>
 
