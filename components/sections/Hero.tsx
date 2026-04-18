@@ -222,7 +222,7 @@ const Hero = () => {
                 className="text-lg px-8 py-4 glow-button"
               >
                 <span className="relative z-10">🚀 Start Exploring</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-70" />
+                {/* <span className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-70" /> */}
               </CTAButton>
 
               <CTAButton
