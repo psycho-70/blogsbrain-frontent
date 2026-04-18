@@ -18,19 +18,29 @@ const MarkdownComponents = {
     h1: ({ node, ...props }: any) => <h1 className="text-4xl font-bold mt-8 mb-6 text-white" {...props} />,
     h2: ({ node, ...props }: any) => <h2 className="text-3xl font-bold mt-8 mb-4 text-white" {...props} />,
     h3: ({ node, ...props }: any) => <h3 className="text-2xl font-bold mt-6 mb-4 text-white" {...props} />,
-    p: ({ node, ...props }: any) => <p className="mb-4 text-gray-300 leading-relaxed" {...props} />,
+    p: ({ node, children, ...props }: any) => {
+        // If the paragraph contains a pre/code block, render a div instead to avoid invalid nesting
+        const hasBlock = node?.children?.some(
+            (child: any) => child.tagName === 'pre' || child.tagName === 'code'
+        )
+        if (hasBlock) return <div className="mb-4 text-gray-300 leading-relaxed">{children}</div>
+        return <p className="mb-4 text-gray-300 leading-relaxed" {...props}>{children}</p>
+    },
     ul: ({ node, ...props }: any) => <ul className="list-disc ml-6 mb-4 space-y-2" {...props} />,
     ol: ({ node, ...props }: any) => <ol className="list-decimal ml-6 mb-4 space-y-2" {...props} />,
     li: ({ node, ...props }: any) => <li className="text-gray-300" {...props} />,
     a: ({ node, ...props }: any) => <a className="text-purple-400 hover:text-purple-300 underline transition-colors" {...props} />,
     blockquote: ({ node, ...props }: any) => <blockquote className="border-l-4 border-purple-500 pl-4 py-2 my-4 bg-gray-800/50 italic text-gray-400 rounded-r" {...props} />,
+    pre: ({ node, children, ...props }: any) => (
+        <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4 border border-gray-800" {...props}>
+            {children}
+        </pre>
+    ),
     code: ({ node, inline, className, children, ...props }: any) => {
         return inline ? (
             <code className="bg-gray-800 px-1 py-0.5 rounded text-purple-300 font-mono text-sm" {...props}>{children}</code>
         ) : (
-            <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4 border border-gray-800">
-                <code className="text-gray-300 font-mono text-sm" {...props}>{children}</code>
-            </pre>
+            <code className="text-gray-300 font-mono text-sm" {...props}>{children}</code>
         )
     },
     img: ({ node, ...props }: any) => <img className="rounded-xl my-8 border border-gray-800 w-full" {...props} />,
