@@ -518,7 +518,7 @@ export default function AdminLogin() {
             </label>
             <input
               type="email"
-              placeholder="admin@gmail.com"
+              // placeholder="admin@gmail.com"
               value={credentials.email}
               onChange={e => setCredentials({ ...credentials, email: e.target.value })}
               onFocus={e => {

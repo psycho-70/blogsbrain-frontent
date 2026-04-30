@@ -4,8 +4,8 @@
  * For standalone frontend, set NEXT_PUBLIC_API_URL in .env (e.g. http://localhost:5000)
  */
 const API_BASE = typeof window !== 'undefined'
-  ? (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000")
-  : ''
+  ? ''
+  : (process.env.NEXT_PUBLIC_API_URL || '')
 
 function getAuthHeaders(token: string) {
   return {
