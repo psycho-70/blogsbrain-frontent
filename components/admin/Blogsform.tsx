@@ -97,10 +97,8 @@ const BlogForm = forwardRef(({ categories, onSubmit, isSubmitting, initialData }
   const getImageUrl = (path: string) => {
     if (!path) return ''
     if (path.startsWith('data:') || path.startsWith('http')) return path
-    // Assuming backend serves uploads at /uploads/ or proxied/direct URL
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'
-    if (path.startsWith('/uploads/')) return `${baseUrl}${path}`
-    return `${baseUrl}/uploads/${path}`
+    if (path.startsWith('/uploads/')) return path
+    return `/uploads/${path}`
   }
 
   return (

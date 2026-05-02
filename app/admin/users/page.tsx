@@ -181,7 +181,7 @@ export default function AdminUsersPage() {
                                             <div className="flex items-center gap-3">
                                                 {user.profile_image ? (
                                                     <img
-                                                        src={user.profile_image.startsWith('http') ? user.profile_image : `http://127.0.0.1:5000${user.profile_image}`}
+                                                        src={user.profile_image.startsWith('http') ? user.profile_image : (user.profile_image.startsWith('/uploads/') ? user.profile_image : `/uploads/${user.profile_image}`)}
                                                         alt={user.name}
                                                         className="w-10 h-10 rounded-full object-cover border border-purple-500/30"
                                                     />
@@ -251,7 +251,7 @@ export default function AdminUsersPage() {
                                 <label className="relative cursor-pointer group">
                                     {form.profile_image ? (
                                         <img
-                                            src={`http://127.0.0.1:5000/uploads/${form.profile_image}`}
+                                            src={form.profile_image.startsWith('http') ? form.profile_image : (form.profile_image.startsWith('/uploads/') ? form.profile_image : `/uploads/${form.profile_image}`)}
                                             className="w-20 h-20 rounded-full object-cover border-2 border-purple-500 shadow-lg shadow-purple-500/20"
                                             alt="Preview"
                                         />

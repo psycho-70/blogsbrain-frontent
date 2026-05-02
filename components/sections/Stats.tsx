@@ -1,9 +1,9 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, Variants } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 40, scale: 0.92 },
   visible: (i: number) => ({
     opacity: 1,
@@ -12,7 +12,7 @@ const cardVariants = {
     transition: {
       delay: i * 0.18,
       duration: 0.65,
-      ease: 'easeOut' as const,
+      ease: 'easeOut',
       type: 'spring',
       stiffness: 90,
       damping: 14,

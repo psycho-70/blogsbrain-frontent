@@ -55,7 +55,7 @@ export default function BlogCard3D({ blog }: BlogCard3DProps) {
     const imageUrl = blog.featured_image
         ? (blog.featured_image.startsWith('http')
             ? blog.featured_image
-            : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}${blog.featured_image}`)
+            : (blog.featured_image.startsWith('/uploads/') ? blog.featured_image : `/uploads/${blog.featured_image}`))
         : null
 
     return (

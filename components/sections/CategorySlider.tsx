@@ -71,7 +71,7 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
                     return {
                         id: b.id,
                         title: b.title,
-                        imageUrl: b.featured_image ? (b.featured_image.startsWith('http') ? b.featured_image : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}${b.featured_image}`) : 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
+                        imageUrl: b.featured_image ? (b.featured_image.startsWith('http') ? b.featured_image : (b.featured_image.startsWith('/uploads/') ? b.featured_image : `/uploads/${b.featured_image}`)) : 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
                         description: b.excerpt || 'Read the full story...',
                         slug: b.slug || String(b.id),
                         metaInfo: b.category?.name || 'General',

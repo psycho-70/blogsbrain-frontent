@@ -150,7 +150,7 @@ export default function BlogDetailPage() {
                             <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                                 {blog.author && blog.author.profile_image ? (
                                     <img
-                                        src={blog.author.profile_image.startsWith('http') ? blog.author.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}${blog.author.profile_image}`}
+                                        src={blog.author.profile_image.startsWith('http') ? blog.author.profile_image : (blog.author.profile_image.startsWith('/uploads/') ? blog.author.profile_image : `/uploads/${blog.author.profile_image}`)}
                                         alt={blog.author.username || 'Author'}
                                         className="w-full h-full object-cover"
                                     />
@@ -182,7 +182,7 @@ export default function BlogDetailPage() {
                         className="mb-12 rounded-2xl overflow-hidden shadow-2xl border border-gray-800"
                     >
                         <img
-                            src={blog.featured_image.startsWith('http') ? blog.featured_image : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}${blog.featured_image}`}
+                            src={blog.featured_image.startsWith('http') ? blog.featured_image : (blog.featured_image.startsWith('/uploads/') ? blog.featured_image : `/uploads/${blog.featured_image}`)}
                             alt={blog.title}
                             className="w-full h-auto object-cover max-h-[600px]"
                         />

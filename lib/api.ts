@@ -249,8 +249,51 @@ export async function blogGeneratorChat(
   return data.response
 }
 export async function adminUploadImage(token: string, file: File): Promise<{ filename: string; url: string }> {
+  let fileToUpload = file;
+
+  if (typeof window !== 'undefined' && file.type.startsWith('image/') && file.size > 1024 * 1024) {
+    try {
+      fileToUpload = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target?.result as string;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const MAX_DIM = 1920;
+            if (width > height && width > MAX_DIM) {
+              height *= MAX_DIM / width;
+              width = MAX_DIM;
+            } else if (height > MAX_DIM) {
+              width *= MAX_DIM / height;
+              height = MAX_DIM;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+              if (blob) {
+                resolve(new File([blob], file.name, { type: file.type, lastModified: Date.now() }));
+              } else {
+                resolve(file);
+              }
+            }, file.type, 0.8);
+          };
+          img.onerror = () => resolve(file);
+        };
+        reader.onerror = () => resolve(file);
+      });
+    } catch (e) {
+      console.error('Compression failed', e);
+    }
+  }
+
   const formData = new FormData()
-  formData.append('image', file)
+  formData.append('image', fileToUpload)
 
   const res = await fetch(`${API_BASE}/api/upload/image`, {
     method: 'POST',

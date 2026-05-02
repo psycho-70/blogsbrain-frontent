@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, Shield, LogIn, AlertCircle, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Shield, LogIn, AlertCircle, Sparkles, ArrowLeft } from 'lucide-react'
 
 /* ─────────────── HAND component ─────────────── */
 function Hand({ cx, cy, mirror = false }: { cx: number; cy: number; mirror?: boolean }) {
@@ -669,6 +670,16 @@ export default function AdminLogin() {
 
 
         </form>
+
+        <div style={{ marginTop: '28px', textAlign: 'center' }}>
+          <Link
+            href="/"
+            className="group flex items-center justify-center gap-2 text-[13px] text-purple-300/60 hover:text-purple-400 transition-colors duration-200"
+          >
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform duration-200" />
+            Back to Home
+          </Link>
+        </div>
       </motion.div>
     </div>
   )

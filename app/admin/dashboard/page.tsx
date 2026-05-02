@@ -50,7 +50,7 @@ const Dashboard = () => {
 
         // Fetch CTA Stats
         try {
-          const ctaRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}/api/cta/stats`)
+          const ctaRes = await fetch(`/api/cta/stats`)
           if (ctaRes.ok) {
             setCtaStats(await ctaRes.json())
           }
@@ -79,7 +79,7 @@ const Dashboard = () => {
                 <div className="w-20 h-20 rounded-full bg-gray-800 border-2 border-purple-500/50 overflow-hidden flex items-center justify-center shrink-0 relative">
                   {user?.profile_image ? (
                     <img
-                      src={user.profile_image.startsWith('http') ? user.profile_image : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}${user.profile_image}`}
+                      src={user.profile_image.startsWith('http') ? user.profile_image : (user.profile_image.startsWith('/uploads/') ? user.profile_image : `/uploads/${user.profile_image}`)}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
@@ -144,7 +144,7 @@ const Dashboard = () => {
                       <div className="hidden sm:block w-16 h-12 rounded-lg bg-gray-800 overflow-hidden flex-shrink-0">
                         {blog.featured_image ? (
                           <img
-                            src={blog.featured_image.startsWith('http') ? blog.featured_image : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'}${blog.featured_image}`}
+                            src={blog.featured_image.startsWith('http') ? blog.featured_image : (blog.featured_image.startsWith('/uploads/') ? blog.featured_image : `/uploads/${blog.featured_image}`)}
                             className="w-full h-full object-cover"
                             alt=""
                           />
