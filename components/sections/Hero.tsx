@@ -103,17 +103,19 @@ const Hero = () => {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.play().catch(() => {
-        setVideoEnded(true)
-        setContentVisible(true)
+        handleVideoEnded()
       })
+    } else {
+      handleVideoEnded()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <section ref={sectionRef} id="hero" className="relative mt-20 flex items-center justify-center overflow-hidden bg-black">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
-        <video
+        {/* <video
           ref={videoRef}
           autoPlay
           muted
@@ -124,7 +126,7 @@ const Hero = () => {
           style={{ objectFit: 'cover', filter: 'brightness(0.4)' }}
         >
           <source src="/0202.mp4" type="video/mp4" />
-        </video>
+        </video> */}
 
         {/* Background after video */}
         <div
@@ -147,7 +149,7 @@ const Hero = () => {
       </div>
 
       {/* Skip intro button */}
-      {!videoEnded && (
+      {/* {!videoEnded && (
         <motion.button
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.7 }}
@@ -162,7 +164,7 @@ const Hero = () => {
         >
           Skip intro
         </motion.button>
-      )}
+      )} */}
 
       {/* Main Content */}
       <motion.div
@@ -233,7 +235,7 @@ const Hero = () => {
                 }}
                 className="text-lg px-8 py-4 border-2 glow-border"
               >
-                <span className="relative z-10">🤖 Meet Einsteine</span>
+                <div className="relative z-10 flex items-center gap-2"><img src="./robot3.png" width={20} height={20} alt="" /> Meet Einsteine</div>
                 <span className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-md opacity-50" />
               </CTAButton>
             </motion.div>

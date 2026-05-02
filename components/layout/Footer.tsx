@@ -11,7 +11,9 @@ import {
   FaRocket,
   FaArrowUp,
   FaRegMoon,
-  FaSun
+  FaSun,
+  FaMale,
+  FaWhatsapp,
 } from 'react-icons/fa'
 import { SiNextdotjs, SiTailwindcss } from 'react-icons/si'
 
@@ -46,20 +48,21 @@ export default function Footer() {
     { icon: <FaGithub />, href: 'https://github.com', label: 'GitHub' },
     { icon: <FaTwitter />, href: 'https://twitter.com', label: 'Twitter' },
     { icon: <FaLinkedin />, href: 'https://linkedin.com', label: 'LinkedIn' },
-    { icon: <FaDiscord />, href: 'https://discord.com', label: 'Discord' }
+    { icon: <FaDiscord />, href: 'https://discord.com', label: 'Discord' },
+    // { icon: <FaMale />, href: 'mailto:[aiittechjournal@gmail.com]', label: 'Gmail' }
   ]
 
   const footerLinks = {
     Product: [
       // { name: 'Features', href: '/features' },
-      { name: 'Affilate', href: '/affilate' },
+      { name: 'Affilate', href: '/affiliate' },
 
     ],
     Company: [
       { name: 'About', href: '/aboutus' },
       { name: 'Blog', href: '/blogs' },
       // { name: 'Careers', href: '/careers' },
-      { name: 'Contact', href: '/contacts' },
+      { name: 'Contact', href: '/contactus' },
 
     ],
     Legal: [
@@ -73,16 +76,31 @@ export default function Footer() {
 
   return (
     <>
-      {/* Back to Top Button */}
-      {isVisible && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 animate-bounce-once"
-          aria-label="Back to top"
+      {/* Floating Action Buttons */}
+      <div className="fixed bottom-8 right-4 md:right-8 z-50 flex flex-col gap-4 items-center mb-20 md:mb-24">
+        {/* WhatsApp Button */}
+        <a
+          href="https://wa.me/19592237583"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-3 md:p-4 rounded-full bg-[#25D366] text-white shadow-[0_0_15px_rgba(37,211,102,0.4)] hover:shadow-[0_0_25px_rgba(37,211,102,0.8)] hover:scale-110 transition-all duration-300"
+          aria-label="Contact us on WhatsApp"
+          title="Contact us on WhatsApp"
         >
-          <FaArrowUp className="w-5 h-5" />
-        </button>
-      )}
+          <FaWhatsapp className="w-5 h-5 md:w-6 md:h-6" />
+        </a>
+
+        {/* Back to Top Button */}
+        {isVisible && (
+          <button
+            onClick={scrollToTop}
+            className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 animate-bounce-once"
+            aria-label="Back to top"
+          >
+            <FaArrowUp className="w-5 h-5" />
+          </button>
+        )}
+      </div>
 
 
 

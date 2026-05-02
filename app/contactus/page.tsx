@@ -13,19 +13,19 @@ const contactInfo = [
     {
         icon: Mail,
         title: 'Email Us',
-        details: ['hello@bloghub.com', 'support@bloghub.com'],
+        details: ['aiittechjournal@gmail.com'],
         description: 'We typically respond within 24 hours'
     },
     {
         icon: Phone,
         title: 'Call Us',
-        details: ['+1 (555) 123-4567', '+1 (555) 987-6543'],
+        details: ['+1 (959) 223-7583'],
         description: 'Mon-Fri from 9am to 6pm EST'
     },
     {
         icon: MapPin,
         title: 'Visit Us',
-        details: ['123 Tech Street', 'San Francisco, CA 94107'],
+        details: ['Lake St, Vernon Rockville', 'CT 06066, United States'],
         description: 'Schedule a meeting in advance'
     },
     {
@@ -404,7 +404,7 @@ export default function ContactPage() {
                     <div className="p-8">
                         <h2 className="text-3xl font-bold text-white mb-2">Find Our Office</h2>
                         <p className="text-gray-400 mb-6">
-                            Visit us at our headquarters in San Francisco
+                            Visit us at our headquarters in Vernon Rockville, CT
                         </p>
                     </div>
                     <div className="relative h-96 bg-gray-800/50">
@@ -412,8 +412,8 @@ export default function ContactPage() {
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="text-center">
                                 <MapPin className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                                <h3 className="text-xl font-bold text-white mb-2">123 Tech Street</h3>
-                                <p className="text-gray-400">San Francisco, CA 94107</p>
+                                <h3 className="text-xl font-bold text-white mb-2">Lake St, Vernon Rockville</h3>
+                                <p className="text-gray-400">CT 06066, United States</p>
                                 <CTAButton buttonId="contact-open-maps" className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors z-10 relative">
                                     Open in Maps
                                 </CTAButton>

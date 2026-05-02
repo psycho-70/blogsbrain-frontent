@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import ScrollSectionHeader from '../ui/ScrollSectionHeader'
+import { useAI } from '@/contexts/AIContext'
 
 const messages = [
   { role: 'user', text: 'Tell me about quantum computing basics.' },
@@ -20,6 +21,7 @@ const bubbleTransition = {
 
 export default function InteractiveAI() {
   const [visibleCount, setVisibleCount] = useState(0)
+  const { setShowAI, setMode } = useAI()
 
   // Reveal one message every 2.6 s, then loop
   useEffect(() => {
@@ -59,7 +61,10 @@ export default function InteractiveAI() {
             <motion.button
               whileHover={{ scale: 1.04, boxShadow: '0 10px 32px rgba(147,51,234,0.45)' }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => window.dispatchEvent(new CustomEvent('show-ai-tour'))}
+              onClick={() => {
+                setShowAI(true)
+                setMode('chat')
+              }}
               className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-bold transition-all duration-300 shadow-lg"
             >
               Start Chatting
