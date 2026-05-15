@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface ScrollSectionHeaderProps {
     badge: string
@@ -21,6 +22,7 @@ const ScrollSectionHeader = ({
         target: targetRef,
         offset: ['start start', 'end end']
     })
+    const { isDark } = useTheme()
 
     const titleScale = useTransform(scrollYProgress, [0, 1], [1.15, 0.82])
     const titleOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [1, 0.9, 0.8, 0.6])
@@ -33,13 +35,23 @@ const ScrollSectionHeader = ({
                     whileInView={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4 }}
                     viewport={{ once: true }}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/25 mb-6"
+                    className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border mb-6 ${
+                        isDark 
+                            ? 'bg-violet-500/10 border-violet-500/25' 
+                            : 'bg-violet-100/80 border-violet-300/50'
+                    }`}
                 >
-                    <span className="text-xs font-semibold text-violet-300 tracking-wide">✦ {badge} ✦</span>
+                    <span className={`text-xs font-semibold tracking-wide ${
+                        isDark ? 'text-violet-300' : 'text-violet-700'
+                    }`}>
+                        ✦ {badge} ✦
+                    </span>
                 </motion.div>
 
                 <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                    <span className="text-white">{titlePrefix} </span>
+                    <span className={isDark ? 'text-white' : 'text-gray-900'}>
+                        {titlePrefix}{' '}
+                    </span>
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-400 to-violet-400">
                         {titleHighlight}
                     </span>
@@ -60,7 +72,9 @@ const ScrollSectionHeader = ({
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
                 viewport={{ once: true }}
-                className="text-gray-400 max-w-lg mx-auto text-[15px] leading-relaxed"
+                className={`max-w-lg mx-auto text-[15px] leading-relaxed ${
+                    isDark ? 'text-gray-400' : 'text-gray-600'
+                }`}
             >
                 {description}
             </motion.p>

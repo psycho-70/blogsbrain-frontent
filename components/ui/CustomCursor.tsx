@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
+import { useTheme } from "@/contexts/ThemeContext"
 
 export default function AdvancedCursor() {
   const mountRef = useRef<HTMLDivElement>(null)
+  const { isDark } = useTheme()
 
   useEffect(() => {
     const scene = new THREE.Scene()
@@ -18,14 +20,14 @@ export default function AdvancedCursor() {
 
     const maxPoints = 60
 
-    // Three trail configs — speed, color offset, line width
+    // Dark mode: full rainbow HSL trails
+    // Light mode: cooler blue/indigo/violet tones (hue 0.55–0.80 range)
     const trailConfigs = [
-      { lerp: 0.12, colorOffset: 0, lineWidth: 1, cx: 0, cy: 0 },
+      { lerp: 0.12, colorOffset: 0,    lineWidth: 1,   cx: 0, cy: 0 },
       { lerp: 0.07, colorOffset: 0.33, lineWidth: 0.7, cx: 0, cy: 0 },
       { lerp: 0.04, colorOffset: 0.66, lineWidth: 0.4, cx: 0, cy: 0 },
     ]
 
-    // Build a line + geometry for each trail
     const trails = trailConfigs.map((cfg) => {
       const points = Array(maxPoints).fill(null).map(() => new THREE.Vector3(0, 0, 0))
       const geometry = new THREE.BufferGeometry().setFromPoints(points)
@@ -36,23 +38,20 @@ export default function AdvancedCursor() {
       const material = new THREE.LineBasicMaterial({
         vertexColors: true,
         transparent: true,
-        opacity: 0.9,
-        linewidth: cfg.lineWidth, // note: only works in WebGL2 with specific extensions
+        opacity: isDark ? 0.9 : 0.65,
+        linewidth: cfg.lineWidth,
       })
 
       const line = new THREE.Line(geometry, material)
       scene.add(line)
 
-      return { ...cfg, points, geometry, line }
+      return { ...cfg, points, geometry, line, material }
     })
 
-    // Shared mouse target
     const mouseTarget = new THREE.Vector2()
-
-    // Per-trail current mouse position (each lerps independently)
     const mouseCurrents = trailConfigs.map(() => new THREE.Vector2())
 
-    window.addEventListener("mousemove", (e) => {
+    const onMouseMove = (e: MouseEvent) => {
       mouseTarget.x = (e.clientX / window.innerWidth) * 2 - 1
       mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1
 
@@ -62,23 +61,24 @@ export default function AdvancedCursor() {
         dot.style.left = `${e.clientX}px`
         dot.style.top = `${e.clientY}px`
       }
-    })
+    }
+    window.addEventListener("mousemove", onMouseMove)
 
-    // Background particles
+    // Background particles — muted in light, vibrant in dark
     const particlesGeometry = new THREE.BufferGeometry()
     const particlesCount = 200
     const posArray = new Float32Array(particlesCount * 3)
     for (let i = 0; i < particlesCount * 3; i += 3) {
-      posArray[i] = (Math.random() - 0.5) * 150
+      posArray[i]     = (Math.random() - 0.5) * 150
       posArray[i + 1] = (Math.random() - 0.5) * 150
       posArray[i + 2] = (Math.random() - 0.5) * 150
     }
     particlesGeometry.setAttribute("position", new THREE.BufferAttribute(posArray, 3))
     const particlesMaterial = new THREE.PointsMaterial({
-      size: 0.2,
-      color: "#8b5cf6",
+      size: isDark ? 0.2 : 0.15,
+      color: isDark ? "#8b5cf6" : "#6366f1",
       transparent: true,
-      opacity: 0.4,
+      opacity: isDark ? 0.4 : 0.18,
       blending: THREE.AdditiveBlending,
     })
     const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial)
@@ -91,7 +91,6 @@ export default function AdvancedCursor() {
       colorTime += 0.005
 
       trails.forEach((trail, ti) => {
-        // Each trail lerps toward the mouse at its own speed
         mouseCurrents[ti].lerp(mouseTarget, trail.lerp)
 
         const vector = new THREE.Vector3(
@@ -105,12 +104,22 @@ export default function AdvancedCursor() {
 
         trail.geometry.setFromPoints(trail.points)
 
-        // Animate colors with per-trail hue offset
         const colorAttr = trail.geometry.attributes.color
         for (let i = 0; i < maxPoints; i++) {
-          const hue = ((i / maxPoints) + colorTime + trail.colorOffset) % 1
-          const color = new THREE.Color().setHSL(hue, 1, 0.6)
-          colorAttr.array[i * 3] = color.r
+          let hue: number
+          if (isDark) {
+            // Full spectrum rainbow
+            hue = ((i / maxPoints) + colorTime + trail.colorOffset) % 1
+          } else {
+            // Constrained to blue → indigo → violet (0.55–0.80)
+            hue = 0.55 + (((i / maxPoints) + colorTime * 0.5 + trail.colorOffset) % 1) * 0.25
+          }
+
+          const lightness = isDark ? 0.6 : 0.45
+          const saturation = isDark ? 1.0 : 0.8
+
+          const color = new THREE.Color().setHSL(hue, saturation, lightness)
+          colorAttr.array[i * 3]     = color.r
           colorAttr.array[i * 3 + 1] = color.g
           colorAttr.array[i * 3 + 2] = color.b
         }
@@ -134,22 +143,32 @@ export default function AdvancedCursor() {
 
     return () => {
       window.removeEventListener("resize", resize)
-      window.removeEventListener("mousemove", () => { })
-      mountRef.current?.removeChild(renderer.domElement)
+      window.removeEventListener("mousemove", onMouseMove)
+      if (mountRef.current?.contains(renderer.domElement)) {
+        mountRef.current.removeChild(renderer.domElement)
+      }
       renderer.dispose()
       trails.forEach(t => {
         t.geometry.dispose()
         t.line.material.dispose()
       })
+      particlesGeometry.dispose()
+      particlesMaterial.dispose()
     }
-  }, [])
+  }, [isDark]) // re-run when theme changes
+
+  // Dot styles adapt to theme
+  const dotGlow = isDark
+    ? "0 0 10px rgba(255,255,255,0.8), 0 0 20px #8b5cf6"
+    : "0 0 8px rgba(99,102,241,0.6), 0 0 16px rgba(99,102,241,0.3)"
+
+  const dotColor = isDark ? "#ffffff" : "#4f46e5"
 
   return (
     <>
       <style jsx global>{`
-        * {
-          cursor: none !important;
-        }
+        * { cursor: none !important; }
+
         canvas {
           display: block;
           position: fixed;
@@ -159,24 +178,33 @@ export default function AdvancedCursor() {
           z-index: 9998;
           background: transparent !important;
         }
+
         .custom-cursor-dot {
           position: fixed;
           top: 0;
           left: 0;
           width: 8px;
           height: 8px;
-          background-color: white;
           border-radius: 50%;
           transform: translate(-50%, -50%);
           pointer-events: none;
           z-index: 9999;
-          box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px #8b5cf6;
           opacity: 0;
-          transition: opacity 0.3s;
+          transition: opacity 0.3s, background-color 0.4s, box-shadow 0.4s;
         }
       `}</style>
-      <div id="custom-cursor-dot" className="custom-cursor-dot" />
-      <div ref={mountRef} className="fixed top-0 left-0 pointer-events-none z-[9998]" style={{ background: 'transparent' }} />
+
+      <div
+        id="custom-cursor-dot"
+        className="custom-cursor-dot"
+        style={{ backgroundColor: dotColor, boxShadow: dotGlow }}
+      />
+
+      <div
+        ref={mountRef}
+        className="fixed top-0 left-0 pointer-events-none z-[9998]"
+        style={{ background: 'transparent' }}
+      />
     </>
   )
 }

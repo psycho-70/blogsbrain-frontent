@@ -3,23 +3,25 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useCallback } from 'react';
-import { 
-    Shield, 
-    Lock, 
-    Eye, 
-    Cookie, 
-    Mail, 
+import { useState, useCallback, useEffect } from 'react';
+import {
+    Shield,
+    Lock,
+    Eye,
+    Cookie,
+    Mail,
     Database,
     UserCheck,
     Trash2,
     FileText,
     Globe,
     Bell,
-    Share2
+    Share2,
+    ArrowRight
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Typewriter from '@/components/ui/Typewriter';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const privacySections = [
     {
@@ -100,8 +102,14 @@ const cookies = [
 const words = ["Privacy", "Security", "Trust", "Protection"];
 
 export default function PrivacyPage() {
+    const { isDark } = useTheme();
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
-    
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -127,36 +135,64 @@ export default function PrivacyPage() {
         }, 1500);
     }, []);
 
-    return (
-        <div className="min-h-screen bg-transparent">
-            {/* Hero Section - Same design as About page */}
-            <section
-                className="relative py-32 overflow-hidden"
-                style={{
-                    backgroundImage: "url('/herobackgrond.svg')",
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundColor: '#000'
-                }}
-            >
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
-                    <div className="absolute inset-0 opacity-30">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
-                    </div>
-                    <div
-                        className="absolute inset-x-0 bottom-0 h-full opacity-40 mix-blend-screen"
-                        style={{
-                            backgroundImage: "url('/bottomsection.svg')",
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'bottom',
-                            backgroundRepeat: 'no-repeat'
-                        }}
-                    />
-                </div>
+    const textPrimary = isDark ? 'text-white' : 'text-slate-900';
+    const textMuted = isDark ? 'text-gray-400' : 'text-slate-500';
+    const cardBg = isDark ? 'bg-gray-900/30 border-gray-800 hover:border-purple-500/50' : 'bg-white/70 border-slate-200 hover:border-purple-300 shadow-sm';
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+    return (
+        <div className={`min-h-screen pb-20 ${isDark ? 'bg-transparent' : 'bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/40'}`}>
+            {/* Background with grid pattern */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                {isDark ? (
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            backgroundImage: "url('/herobackgrond.svg')",
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundColor: '#000'
+                        }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
+                        <div className="absolute inset-0 opacity-30">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="absolute inset-0">
+                        <div
+                            className="absolute inset-0"
+                            style={{
+                                backgroundImage: "url('/herobackgrond.svg')",
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundColor: '#fff'
+                            }}
+                        />
+                        <div className="absolute inset-0 bg-white/82" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 via-white/40 to-blue-50/70" />
+
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+                                                linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)`,
+                                backgroundSize: '60px 60px',
+                            }}
+                        />
+
+                        <div className="absolute inset-0 opacity-15">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-200/50 to-transparent animate-gradient-x" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-100/40 to-transparent animate-gradient-y" />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Hero Section */}
+            <section className="relative py-32 overflow-hidden z-10">
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial="hidden"
                         animate="visible"
@@ -165,13 +201,13 @@ export default function PrivacyPage() {
                     >
                         <motion.h1
                             variants={itemVariants}
-                            className="text-6xl md:text-8xl font-bold text-white mb-8 tracking-tight leading-tight"
+                            className={`text-6xl md:text-8xl font-bold mb-8 tracking-tight leading-tight ${textPrimary}`}
                         >
                             Your Privacy, <br />
                             <span
                                 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 inline-block relative"
                                 style={{
-                                    textShadow: '0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(59, 130, 246, 0.4)'
+                                    textShadow: isDark ? '0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(59, 130, 246, 0.4)' : 'none'
                                 }}
                             >
                                 <Typewriter
@@ -182,9 +218,9 @@ export default function PrivacyPage() {
                                 />
                             </span>
                         </motion.h1>
-                        <motion.p variants={itemVariants} className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
-                            We respect your privacy and are committed to protecting your personal data. 
-                            Read on to learn how we collect, use, and safeguard your <span className="text-white font-semibold underline decoration-purple-500/50">information</span>.
+                        <motion.p variants={itemVariants} className={`text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed ${isDark ? 'text-gray-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-slate-600'}`}>
+                            We respect your privacy and are committed to protecting your personal data.
+                            Read on to learn how we collect, use, and safeguard your <span className={`font-semibold underline ${isDark ? 'text-white decoration-purple-500/50' : 'text-purple-700 decoration-purple-500/30'}`}>information</span>.
                         </motion.p>
                         <motion.div variants={itemVariants} className="flex justify-center space-x-6">
                             <Link
@@ -196,30 +232,17 @@ export default function PrivacyPage() {
                             </Link>
                             <Link
                                 href="/terms"
-                                className="border-2 border-gray-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-white/10 transition-all backdrop-blur-sm"
+                                className={`border-2 px-10 py-4 rounded-xl font-bold transition-all backdrop-blur-sm ${isDark ? 'border-gray-600 text-white hover:bg-white/10' : 'border-slate-300 text-slate-700 hover:bg-white/50'}`}
                             >
                                 Terms of Service
                             </Link>
                         </motion.div>
                     </motion.div>
                 </div>
-
-                <style jsx>{`
-                    @keyframes gradient-x {
-                        0%, 100% { transform: translateX(-50%); }
-                        50% { transform: translateX(50%); }
-                    }
-                    @keyframes gradient-y {
-                        0%, 100% { transform: translateY(-50%); }
-                        50% { transform: translateY(50%); }
-                    }
-                    .animate-gradient-x { animation: gradient-x 15s ease-in-out infinite; }
-                    .animate-gradient-y { animation: gradient-y 20s ease-in-out infinite; }
-                `}</style>
             </section>
 
             {/* Privacy Stats */}
-            <section className="py-16">
+            <section className="py-16 relative z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -229,30 +252,20 @@ export default function PrivacyPage() {
                         className="grid grid-cols-2 md:grid-cols-4 gap-8"
                     >
                         {privacyStats.map((stat, index) => (
-                            <div key={index} className="text-center p-6 bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 hover:border-purple-500/30 transition-colors">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-full mb-4">
-                                    <stat.icon className="w-8 h-8 text-blue-400" />
+                            <div key={index} className={`text-center p-6 backdrop-blur-sm rounded-2xl border transition-all hover:scale-105 ${cardBg}`}>
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full mb-4">
+                                    <stat.icon className="w-8 h-8 text-blue-500" />
                                 </div>
-                                <div className="text-4xl font-bold text-white mb-2">{stat.number}</div>
-                                <div className="text-gray-400">{stat.label}</div>
+                                <div className={`text-4xl font-bold mb-2 ${textPrimary}`}>{stat.number}</div>
+                                <div className={textMuted}>{stat.label}</div>
                             </div>
                         ))}
                     </motion.div>
                 </div>
             </section>
 
-            {/* Last Updated */}
-            <section className="py-8">
-                <div className="max-w-7xl mx-auto px-4 text-center">
-                    <div className="inline-flex items-center space-x-2 bg-gray-900/30 px-6 py-3 rounded-full border border-gray-800">
-                        <FileText className="w-5 h-5 text-blue-400" />
-                        <span className="text-gray-300">Last Updated: January 15, 2024</span>
-                    </div>
-                </div>
-            </section>
-
             {/* Privacy Sections Grid */}
-            <section className="py-20">
+            <section className="py-20 relative z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -260,8 +273,8 @@ export default function PrivacyPage() {
                         viewport={{ once: true }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-4xl font-bold text-white mb-4">Privacy Policy</h2>
-                        <p className="text-gray-400 max-w-2xl mx-auto">
+                        <h2 className={`text-4xl font-bold mb-4 ${textPrimary}`}>Privacy Policy</h2>
+                        <p className={`max-w-2xl mx-auto ${textMuted}`}>
                             How we handle your personal information and protect your privacy
                         </p>
                     </motion.div>
@@ -274,17 +287,17 @@ export default function PrivacyPage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1 }}
-                                className="group bg-gray-900/30 p-8 rounded-2xl border border-gray-800 hover:border-blue-500/50 transition-all hover:-translate-y-2"
+                                className={`group p-8 rounded-2xl border transition-all hover:-translate-y-2 ${cardBg}`}
                             >
                                 <div className="flex items-start space-x-4">
                                     <div className="flex-shrink-0">
-                                        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-xl group-hover:scale-110 transition-transform">
-                                            <section.icon className="w-6 h-6 text-blue-400" />
+                                        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-600/10 to-purple-600/10 rounded-xl group-hover:scale-110 transition-transform">
+                                            <section.icon className="w-6 h-6 text-purple-500" />
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-3">{section.title}</h3>
-                                        <p className="text-gray-400 leading-relaxed">{section.content}</p>
+                                        <h3 className={`text-xl font-bold mb-3 ${textPrimary}`}>{section.title}</h3>
+                                        <p className={`${textMuted} leading-relaxed`}>{section.content}</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -294,7 +307,7 @@ export default function PrivacyPage() {
             </section>
 
             {/* Cookie Policy Section */}
-            <section className="py-20 bg-gradient-to-b from-transparent to-gray-900/20">
+            <section className="py-20 relative z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <motion.div
@@ -303,12 +316,12 @@ export default function PrivacyPage() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-3xl font-bold text-white mb-6">Cookie Policy</h2>
-                            <p className="text-gray-300 mb-6 leading-relaxed">
-                                We use cookies to enhance your browsing experience and analyze our traffic. 
+                            <h2 className={`text-3xl font-bold mb-6 ${textPrimary}`}>Cookie Policy</h2>
+                            <p className={`${textMuted} mb-8 leading-relaxed text-lg`}>
+                                We use cookies to enhance your browsing experience and analyze our traffic.
                                 You can choose to accept or decline cookies through your browser settings.
                             </p>
-                            
+
                             <div className="space-y-4">
                                 {cookies.map((cookie, index) => (
                                     <motion.div
@@ -317,93 +330,123 @@ export default function PrivacyPage() {
                                         whileInView={{ opacity: 1, x: 0 }}
                                         viewport={{ once: true }}
                                         transition={{ delay: index * 0.1 }}
-                                        className="flex items-start space-x-3 bg-gray-900/30 p-4 rounded-xl border border-gray-800"
+                                        className={`flex items-start space-x-4 p-5 rounded-2xl border transition-all ${cardBg}`}
                                     >
-                                        <Cookie className="w-5 h-5 text-blue-400 mt-1 flex-shrink-0" />
+                                        <div className="mt-1 p-2 bg-blue-500/10 rounded-lg">
+                                            <Cookie className="w-6 h-6 text-blue-500" />
+                                        </div>
                                         <div>
-                                            <h4 className="text-white font-semibold">{cookie.name}</h4>
-                                            <p className="text-gray-400 text-sm">{cookie.description}</p>
-                                            <p className="text-xs text-gray-500 mt-1">Duration: {cookie.duration}</p>
+                                            <h4 className={`font-bold text-lg ${textPrimary}`}>{cookie.name}</h4>
+                                            <p className={`${textMuted} text-sm mb-2`}>{cookie.description}</p>
+                                            <span className="px-2 py-1 bg-purple-500/10 text-purple-500 text-[10px] uppercase font-black tracking-widest rounded-md border border-purple-500/20">
+                                                Duration: {cookie.duration}
+                                            </span>
                                         </div>
                                     </motion.div>
                                 ))}
                             </div>
                         </motion.div>
-                        
+
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
-                            className="relative h-96 rounded-2xl overflow-hidden shadow-2xl border border-gray-800"
+                            className="relative h-96 lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl border border-purple-500/20 group"
                         >
                             <Image
-                                src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=600&fit=crop"
+                                src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&h=1000&fit=crop"
                                 alt="Privacy and security concept"
                                 fill
-                                className="object-cover"
+                                className="object-cover transition-transform duration-700 group-hover:scale-110"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+                            <div className={`absolute inset-0 bg-gradient-to-t ${isDark ? 'from-black/80' : 'from-slate-900/40'} via-transparent to-transparent`} />
+                            <div className="absolute bottom-8 left-8 right-8">
+                                <div className="p-6 backdrop-blur-md bg-white/10 rounded-2xl border border-white/20">
+                                    <p className="text-white font-bold text-lg">"Privacy is not an option, it's a fundamental right."</p>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 </div>
             </section>
 
             {/* Your Rights Section */}
-            <section className="py-20">
+            <section className="py-20 relative z-10">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 backdrop-blur-sm rounded-3xl border border-gray-800 p-10"
+                        className={`backdrop-blur-md rounded-3xl border p-12 overflow-hidden relative group ${isDark ? 'bg-gray-900/40 border-gray-800 shadow-2xl shadow-purple-500/5' : 'bg-white/80 border-slate-200 shadow-xl'}`}
                     >
-                        <UserCheck className="w-16 h-16 text-blue-400 mx-auto mb-6" />
-                        <h2 className="text-3xl font-bold text-white mb-4">Your Privacy Rights</h2>
-                        <p className="text-gray-300 mb-8 leading-relaxed">
-                            Depending on your location, you may have additional privacy rights under applicable laws, 
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 opacity-50" />
+                        <div className={`inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-3xl mb-8 group-hover:rotate-6 transition-transform`}>
+                            <UserCheck className="w-10 h-10 text-blue-500" />
+                        </div>
+                        <h2 className={`text-3xl lg:text-4xl font-black mb-6 ${textPrimary}`}>Your Privacy Rights</h2>
+                        <p className={`${textMuted} mb-10 leading-relaxed text-lg`}>
+                            Depending on your location, you may have additional privacy rights under applicable laws,
                             including the right to access, correct, or delete your personal information.
                         </p>
-                        <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
-                                <h3 className="text-white font-semibold mb-2">GDPR (EU Users)</h3>
-                                <p className="text-gray-400 text-sm">Right to access, rectification, erasure, and data portability</p>
+                        <div className="grid sm:grid-cols-2 gap-6 mb-10">
+                            <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                                <h3 className={`font-bold mb-3 ${textPrimary}`}>GDPR (EU Users)</h3>
+                                <p className={`text-sm ${textMuted}`}>Right to access, rectification, erasure, and data portability</p>
                             </div>
-                            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
-                                <h3 className="text-white font-semibold mb-2">CCPA (California)</h3>
-                                <p className="text-gray-400 text-sm">Right to know, delete, and opt-out of data sales</p>
+                            <div className={`p-6 rounded-2xl border transition-all ${isDark ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-200'}`}>
+                                <h3 className={`font-bold mb-3 ${textPrimary}`}>CCPA (California)</h3>
+                                <p className={`text-sm ${textMuted}`}>Right to know, delete, and opt-out of data sales</p>
                             </div>
                         </div>
                         <Link
                             href="/contactus"
-                            className="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-bold transition-all hover:shadow-purple-500/40"
+                            className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-2xl font-black transition-all hover:scale-105 shadow-xl shadow-purple-500/20 group"
                         >
                             Exercise Your Rights
-                            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
+                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </motion.div>
                 </div>
             </section>
 
-            {/* Contact Section */}
-            <section className="py-12 border-t border-gray-800">
+            {/* Footer Notice */}
+            <section className="py-12 mt-20 border-t relative z-10 overflow-hidden ${isDark ? 'border-white/5' : 'border-slate-200'}">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="flex items-center space-x-4">
-                            <Mail className="w-5 h-5 text-blue-400" />
-                            <span className="text-gray-300">Privacy Questions? Email us at:</span>
-                            <a href="mailto:privacy@yourblog.com" className="text-blue-400 hover:underline">
-                                privacy@yourblog.com
-                            </a>
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                        <div className="flex items-center space-x-6">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-gray-800' : 'bg-white shadow-sm'}`}>
+                                <Mail className="w-6 h-6 text-purple-500" />
+                            </div>
+                            <div>
+                                <p className={`text-xs font-black uppercase tracking-widest mb-1 ${textMuted}`}>Privacy Assistance</p>
+                                <a href="mailto:privacy@brainblog.com" className={`text-lg font-bold hover:text-purple-500 transition-colors ${textPrimary}`}>
+                                    privacy@brainblog.com
+                                </a>
+                            </div>
                         </div>
-                        <p className="text-gray-500 text-sm">
-                            © 2024 Your Blog Name. All rights reserved.
-                        </p>
+                        <div className="text-center md:text-right">
+                            <p className={`text-sm font-medium ${textMuted}`}>
+                                © {new Date().getFullYear()} Brain Blog. All rights reserved.
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-500/50 mt-2">Industrial Security Verified</p>
+                        </div>
                     </div>
                 </div>
             </section>
+
+            <style jsx global>{`
+                @keyframes gradient-x {
+                    0%, 100% { transform: translateX(-5%); opacity: 0.3; }
+                    50% { transform: translateX(5%); opacity: 0.6; }
+                }
+                @keyframes gradient-y {
+                    0%, 100% { transform: translateY(-5%); opacity: 0.3; }
+                    50% { transform: translateY(5%); opacity: 0.6; }
+                }
+                .animate-gradient-x { animation: gradient-x 15s ease-in-out infinite; }
+                .animate-gradient-y { animation: gradient-y 20s ease-in-out infinite; }
+            `}</style>
         </div>
     );
 }

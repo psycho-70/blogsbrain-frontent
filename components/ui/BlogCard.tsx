@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { trackInterest } from '@/lib/tracking'
 
 export interface BlogCardBlog {
   id: number
@@ -25,7 +26,11 @@ export default function BlogCard({ blog }: BlogCardProps) {
   const href = `/blogs/${blog.slug}`
 
   return (
-    <Link href={href} className="block group">
+    <Link
+      href={href}
+      className="block group"
+      onClick={() => trackInterest(blog.category)}
+    >
       <article className="relative h-full bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20">
         {/* Gradient border glow on hover */}
         <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-purple-600 to-blue-500 opacity-0 blur group-hover:opacity-30 transition-opacity duration-500 -z-10" />

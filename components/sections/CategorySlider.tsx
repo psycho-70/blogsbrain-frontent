@@ -1,12 +1,11 @@
-// components/CategorySlider.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import ScrollSectionHeader from '../ui/ScrollSectionHeader';
+import { useTheme } from '@/contexts/ThemeContext';
+import { getTopInterests } from '@/lib/tracking';
 
-// Types defined inside the component
 interface SliderItem {
     id: number;
     title: string;
@@ -32,7 +31,8 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
     showControls = true,
     showDots = true
 }) => {
-    // Default items if none provided
+    const { isDark } = useTheme();
+
     const defaultItems: SliderItem[] = [
         {
             id: 1,
@@ -50,8 +50,21 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
     const [currentIndex, setCurrentIndex] = useState(0);
     const [fetchedItems, setFetchedItems] = useState<SliderItem[]>([]);
     const [isLoadingItems, setIsLoadingItems] = useState(true);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStartX, setDragStartX] = useState(0);
+    const [dragScrollLeft, setDragScrollLeft] = useState(0);
+    const scrollInterval = useRef<NodeJS.Timeout | null>(null);
 
-    // Fetch dynamic blogs
+    const calculateVisibleItems = () => {
+        if (typeof window === 'undefined') return 3;
+        const width = window.innerWidth;
+        if (width < 640) return 1;
+        if (width < 1024) return 2;
+        return 3;
+    };
+
+    const [visibleItems, setVisibleItems] = useState(3);
+
     useEffect(() => {
         if (items && items.length > 0) {
             setFetchedItems(items);
@@ -61,7 +74,6 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
 
         const fetchDynamicBlogs = async () => {
             try {
-                // We dynamically import getBlogs from api
                 const { getBlogs } = await import('@/lib/api');
                 const res = await getBlogs({ per_page: 8 });
 
@@ -80,13 +92,23 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
                 });
 
                 if (mapped.length > 0) {
-                    setFetchedItems(mapped);
+                    // Personalization: Sort by interest
+                    const interests = getTopInterests();
+                    const personalized = [...mapped].sort((a, b) => {
+                        const scoreA = interests.indexOf(a.metaInfo);
+                        const scoreB = interests.indexOf(b.metaInfo);
+                        if (scoreA !== -1 && scoreB !== -1) return scoreA - scoreB;
+                        if (scoreA !== -1) return -1;
+                        if (scoreB !== -1) return 1;
+                        return 0;
+                    });
+                    setFetchedItems(personalized);
                 } else {
-                    setFetchedItems(defaultItems); // fallback
+                    setFetchedItems(defaultItems);
                 }
             } catch (error) {
                 console.error("Failed to load blogs for slider", error);
-                setFetchedItems(defaultItems); // fallback if fails
+                setFetchedItems(defaultItems);
             } finally {
                 setIsLoadingItems(false);
             }
@@ -95,25 +117,8 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         fetchDynamicBlogs();
     }, [items]);
 
-    // Use fetched items or defaults
     const displayItems = fetchedItems.length > 0 ? fetchedItems : defaultItems;
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStartX, setDragStartX] = useState(0);
-    const [dragScrollLeft, setDragScrollLeft] = useState(0);
-    const scrollInterval = useRef<NodeJS.Timeout | null>(null);
 
-    // Calculate visible items based on screen width
-    const calculateVisibleItems = () => {
-        if (typeof window === 'undefined') return 3;
-        const width = window.innerWidth;
-        if (width < 640) return 1;
-        if (width < 1024) return 2;
-        return 3;
-    };
-
-    const [visibleItems, setVisibleItems] = useState(3); // Start with default
-
-    // Handle responsive visible items and styles
     useEffect(() => {
         setVisibleItems(calculateVisibleItems());
 
@@ -121,7 +126,6 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
             setVisibleItems(calculateVisibleItems());
         };
 
-        // Inject styles only on client
         const styleSheet = document.createElement("style");
         styleSheet.innerText = styles;
         document.head.appendChild(styleSheet);
@@ -135,12 +139,11 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         };
     }, []);
 
-    // Function to scroll to specific index
     const scrollToIndex = (index: number) => {
         if (sliderRef.current) {
             const container = sliderRef.current;
             const card = container.children[0] as HTMLElement;
-            const cardWidth = card.offsetWidth + 24; // Width + gap
+            const cardWidth = card.offsetWidth + 24;
             const maxIndex = displayItems.length - visibleItems;
             const safeIndex = Math.min(index, maxIndex);
 
@@ -152,7 +155,6 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         }
     };
 
-    // Auto-scroll functionality
     const startAutoScroll = () => {
         if (scrollInterval.current) {
             clearInterval(scrollInterval.current);
@@ -167,10 +169,8 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         }, autoScrollSpeed);
     };
 
-    // Initialize auto-scroll
     useEffect(() => {
         startAutoScroll();
-
         return () => {
             if (scrollInterval.current) {
                 clearInterval(scrollInterval.current);
@@ -178,7 +178,6 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         };
     }, [currentIndex, isPaused, displayItems.length, autoScrollSpeed, visibleItems, isDragging]);
 
-    // Manual navigation handlers
     const handlePrev = () => {
         const maxIndex = displayItems.length - visibleItems;
         const prevIndex = currentIndex === 0 ? maxIndex : currentIndex - 1;
@@ -191,13 +190,10 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         scrollToIndex(nextIndex);
     };
 
-    // Drag functionality for mobile
     const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
         if (!sliderRef.current) return;
-
         setIsDragging(true);
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-
         setDragStartX(clientX);
         setDragScrollLeft(sliderRef.current.scrollLeft);
         setIsPaused(true);
@@ -205,19 +201,15 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
 
     const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
         if (!isDragging || !sliderRef.current) return;
-
         e.preventDefault();
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
         const walk = (clientX - dragStartX) * 2;
-
         sliderRef.current.scrollLeft = dragScrollLeft - walk;
     };
 
     const handleDragEnd = () => {
         setIsDragging(false);
         setIsPaused(false);
-
-        // Calculate new index based on scroll position
         if (sliderRef.current) {
             const container = sliderRef.current;
             const card = container.children[0] as HTMLElement;
@@ -227,7 +219,6 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         }
     };
 
-    // Mouse events for pause on hover
     const handleMouseEnter = () => {
         if (pauseOnHover) {
             setIsPaused(true);
@@ -240,7 +231,6 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
         }
     };
 
-    // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -253,7 +243,8 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
             <div className="w-full bg-transparent mx-auto px-4 py-8 relative max-w-7xl">
                 <div className="animate-pulse flex space-x-6 overflow-hidden">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="flex-shrink-0 w-[280px] sm:w-[320px] h-80 bg-gray-800 rounded-2xl" />
+                        <div key={i} className={`flex-shrink-0 w-[280px] sm:w-[320px] h-80 rounded-2xl ${isDark ? 'bg-gray-800' : 'bg-gray-200'
+                            }`} />
                     ))}
                 </div>
             </div>
@@ -261,150 +252,237 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
     }
 
     return (
-        <>
-
-            <div className="w-full bg-transparent mx-auto py-12 relative">
-                <div className='max-w-7xl mx-auto'>
-                    <ScrollSectionHeader
-                        badge="Insights"
-                        titlePrefix="Explore"
-                        titleHighlight="Latest Articles"
-                        description="Discover our most recent blog posts and stay updated with AI news."
-                    />
-
-                    <div className="flex justify-between items-center mb-4 px-4">
-                        <div />
-
-                        {/* Navigation Controls */}
-                        {showControls && (
-                            <div className="flex items-center space-x-4 self-end sm:self-auto">
-
-
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={handlePrev}
-                                        className="p-2 sm:p-3 rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-colors shadow-sm text-white"
-                                        aria-label="Previous categories"
-                                    >
-                                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                        </svg>
-                                    </button>
-                                    <button
-                                        onClick={handleNext}
-                                        className="p-2 sm:p-3 rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-colors shadow-sm text-white"
-                                        aria-label="Next categories"
-                                    >
-                                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Slider Container */}
+        <div className="w-full mx-auto py-12 relative overflow-hidden">
+            {/* Background with grid pattern */}
+            <div className="absolute inset-0 z-0">
+                {isDark ? (
                     <div
-                        ref={sliderRef}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={(e) => {
-                            handleMouseLeave();
-                            handleDragEnd();
-                        }}
-                        onMouseDown={handleDragStart}
-                        onMouseMove={handleDragMove}
-                        onMouseUp={handleDragEnd}
-                        onTouchStart={handleDragStart}
-                        onTouchMove={handleDragMove}
-                        onTouchEnd={handleDragEnd}
-                        className={`flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth py-4 cursor-grab ${isDragging ? 'cursor-grabbing' : ''
-                            }`}
-                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        className="absolute inset-0 bg-cover bg-center"
+                    // style={{
+                    //     backgroundImage: "url('/herobackgrond.svg')",
+                    //     backgroundSize: 'cover',
+                    //     backgroundPosition: 'center',
+                    //     backgroundColor: '#000',
+                    // }}
                     >
-                        {displayItems.map((item, index) => (
-                            <div
-                                key={item.id}
-                                className="flex-shrink-0 w-[280px] sm:w-[320px] group cursor-pointer transform transition-all duration-300 hover:-translate-y-2"
-                                tabIndex={0}
-                                onKeyDown={(e) => handleKeyDown(e, index)}
-                                role="button"
-                                aria-label={`View ${item.title}`}
-                            >
-                                <Link href={`/blogs/${item.slug}`} className="block h-full">
-                                    <div className="relative overflow-hidden rounded-2xl shadow-lg bg-gray-900 border border-gray-800 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 h-full">
-                                        {/* Image Container */}
-                                        <div className="relative h-48 w-full overflow-hidden">
-                                            <img
-                                                src={item.imageUrl}
-                                                alt={item.title}
-
-                                                sizes="(max-width: 320px) 100vw, 320px"
-                                                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                            // priority={index < 3}
-                                            />
-                                            {/* Gradient Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
-
-                                            {/* Tag Badge */}
-                                            <div className="absolute top-4 left-4 flex items-center">
-                                                <span className={`w-3 h-3 rounded-full ${item.color || 'bg-blue-500'} mr-2`}></span>
-                                                <span className="px-3 py-1.5 bg-gray-900/90 backdrop-blur-sm text-sm font-semibold text-white rounded-full border border-gray-700">
-                                                    {item.metaInfo}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="p-6">
-                                            <h3 className="text-xl font-bold text-white mb-3 line-clamp-1 group-hover:text-purple-400 transition-colors">{item.title}</h3>
-                                            <p className="text-gray-400 mb-5 line-clamp-2">{item.description}</p>
-
-                                            <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-                                                <div
-                                                    className="text-purple-400 font-medium text-sm flex items-center transition-colors"
-                                                    aria-label={`Read ${item.title}`}
-                                                >
-                                                    Read Article
-                                                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Hover Overlay */}
-                                        <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                                    </div>
-                                </Link>
-                            </div>
-                        ))}
+                        <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
+                        <div className="absolute inset-0 opacity-30">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
+                        </div>
                     </div>
+                ) : (
+                    <div className="absolute inset-0">
+                        <div
+                            className="absolute inset-0 bg-cover bg-center"
+                        // style={{
+                        //     backgroundImage: "url('/herobackgrond.svg')",
+                        //     backgroundSize: 'cover',
+                        //     backgroundPosition: 'center',
+                        //     backgroundColor: '#fff',
+                        // }}
+                        />
+                        <div className="absolute inset-0 bg-white/82" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 via-white/40 to-blue-50/70" />
 
-                    {/* Dots Indicator */}
-                    {showDots && (
-                        <div className="flex justify-center space-x-2 mt-8">
-                            {Array.from({ length: Math.max(1, displayItems.length - visibleItems + 1) }).map((_, index) => (
+                        <div
+                            className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full opacity-25 pointer-events-none"
+                            style={{
+                                background: 'radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%)',
+                                transform: 'translate(-30%, -30%)',
+                            }}
+                        />
+                        <div
+                            className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none"
+                            style={{
+                                background: 'radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%)',
+                                transform: 'translate(20%, 20%)',
+                            }}
+                        />
+
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.08) 1px, transparent 1px),
+                                                  linear-gradient(90deg, rgba(0,0,0,0.08) 1px, transparent 1px)`,
+                                backgroundSize: '60px 60px',
+                            }}
+                        />
+
+                        <div className="absolute inset-0 opacity-15">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-200/50 to-transparent animate-gradient-x" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-100/40 to-transparent animate-gradient-y" />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className='max-w-7xl mx-auto relative z-10'>
+                <ScrollSectionHeader
+                    badge="Insights"
+                    titlePrefix="Explore"
+                    titleHighlight="Latest Articles"
+                    description="Discover our most recent blog posts and stay updated with AI news."
+                />
+
+                <div className="flex justify-between items-center mb-4 px-4">
+                    <div />
+                    {showControls && (
+                        <div className="flex items-center space-x-4 self-end sm:self-auto">
+                            <div className="flex space-x-2">
                                 <button
-                                    key={index}
-                                    onClick={() => scrollToIndex(index)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${currentIndex === index
-                                        ? 'bg-purple-600 w-8'
-                                        : 'bg-gray-700 hover:bg-gray-600'
+                                    onClick={handlePrev}
+                                    className={`p-2 sm:p-3 rounded-full border transition-colors shadow-sm ${isDark
+                                        ? 'bg-gray-800 border-gray-700 hover:bg-gray-700 text-white'
+                                        : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
                                         }`}
-                                    aria-label={`Go to slide ${index + 1}`}
-                                    aria-current={currentIndex === index ? 'true' : 'false'}
-                                />
-                            ))}
+                                    aria-label="Previous categories"
+                                >
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={handleNext}
+                                    className={`p-2 sm:p-3 rounded-full border transition-colors shadow-sm ${isDark
+                                        ? 'bg-gray-800 border-gray-700 hover:bg-gray-700 text-white'
+                                        : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
+                                        }`}
+                                    aria-label="Next categories"
+                                >
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
+
+                <div
+                    ref={sliderRef}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={(e) => {
+                        handleMouseLeave();
+                        handleDragEnd();
+                    }}
+                    onMouseDown={handleDragStart}
+                    onMouseMove={handleDragMove}
+                    onMouseUp={handleDragEnd}
+                    onTouchStart={handleDragStart}
+                    onTouchMove={handleDragMove}
+                    onTouchEnd={handleDragEnd}
+                    className={`flex space-x-6 overflow-x-auto scrollbar-hide scroll-smooth py-4 cursor-grab ${isDragging ? 'cursor-grabbing' : ''}`}
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                    {displayItems.map((item, index) => (
+                        <div
+                            key={item.id}
+                            className="flex-shrink-0 w-[280px] sm:w-[320px] group cursor-pointer transform transition-all duration-300 hover:-translate-y-2"
+                            tabIndex={0}
+                            onKeyDown={(e) => handleKeyDown(e, index)}
+                            role="button"
+                            aria-label={`View ${item.title}`}
+                        >
+                            <Link href={`/blogs/${item.slug}`} className="block h-full">
+                                <div className={`relative overflow-hidden rounded-2xl shadow-lg border transition-all duration-300 h-full ${isDark
+                                    ? 'bg-gray-900 border-gray-800 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/10'
+                                    : 'bg-white border-gray-200 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-400/20'
+                                    }`}>
+                                    <div className="relative h-48 w-full overflow-hidden">
+                                        <img
+                                            src={item.imageUrl}
+                                            alt={item.title}
+                                            sizes="(max-width: 320px) 100vw, 320px"
+                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                        />
+                                        <div className={`absolute inset-0 bg-gradient-to-t ${isDark
+                                            ? 'from-gray-900 via-gray-900/40 to-transparent'
+                                            : 'from-white via-white/40 to-transparent'
+                                            }`} />
+
+                                        <div className="absolute top-4 left-4 flex items-center">
+                                            <span className={`w-3 h-3 rounded-full ${item.color || 'bg-blue-500'} mr-2`}></span>
+                                            <span className={`px-3 py-1.5 backdrop-blur-sm text-sm font-semibold rounded-full border ${isDark
+                                                ? 'bg-gray-900/90 text-white border-gray-700'
+                                                : 'bg-white/90 text-gray-900 border-gray-200'
+                                                }`}>
+                                                {item.metaInfo}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6">
+                                        <h3 className={`text-xl font-bold mb-3 line-clamp-1 transition-colors ${isDark
+                                            ? 'text-white group-hover:text-purple-400'
+                                            : 'text-gray-900 group-hover:text-purple-600'
+                                            }`}>
+                                            {item.title}
+                                        </h3>
+                                        <p className={`mb-5 line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-600'
+                                            }`}>
+                                            {item.description}
+                                        </p>
+
+                                        <div className={`flex items-center justify-between pt-4 ${isDark ? 'border-t border-gray-800' : 'border-t border-gray-100'
+                                            }`}>
+                                            <div
+                                                className={`font-medium text-sm flex items-center transition-colors ${isDark ? 'text-purple-400' : 'text-purple-600'
+                                                    }`}
+                                                aria-label={`Read ${item.title}`}
+                                            >
+                                                Read Article
+                                                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${isDark ? 'bg-purple-500/5' : 'bg-purple-400/5'
+                                        }`} />
+                                </div>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+
+                {showDots && (
+                    <div className="flex justify-center space-x-2 mt-8">
+                        {Array.from({ length: Math.max(1, displayItems.length - visibleItems + 1) }).map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => scrollToIndex(index)}
+                                className={`w-2 h-2 rounded-full transition-all duration-300 ${currentIndex === index
+                                    ? 'bg-purple-600 w-8'
+                                    : isDark
+                                        ? 'bg-gray-700 hover:bg-gray-600'
+                                        : 'bg-gray-300 hover:bg-gray-400'
+                                    }`}
+                                aria-label={`Go to slide ${index + 1}`}
+                                aria-current={currentIndex === index ? 'true' : 'false'}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
-        </>
+
+            <style jsx>{`
+                @keyframes gradient-x {
+                    0%, 100% { transform: translateX(-100%); }
+                    50% { transform: translateX(100%); }
+                }
+                @keyframes gradient-y {
+                    0%, 100% { transform: translateY(-100%); }
+                    50% { transform: translateY(100%); }
+                }
+                .animate-gradient-x { animation: gradient-x 15s ease-in-out infinite; }
+                .animate-gradient-y { animation: gradient-y 20s ease-in-out infinite; }
+            `}</style>
+        </div>
     );
 };
 
-// Custom CSS for hiding scrollbar
 const styles = `
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -426,6 +504,5 @@ const styles = `
     -webkit-line-clamp: 2;
   }
 `;
-
 
 export default CategorySlider;

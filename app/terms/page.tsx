@@ -2,10 +2,26 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useCallback } from 'react';
-import { Shield, FileText, Scale, Lock, Globe, AlertCircle, BookOpen, Eye, Mail, Award, Calendar } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useCallback, useEffect } from 'react';
+import {
+    Shield,
+    FileText,
+    Scale,
+    Lock,
+    Globe,
+    AlertCircle,
+    BookOpen,
+    Eye,
+    Mail,
+    Award,
+    Calendar,
+    ArrowRight,
+    Gavel,
+    CheckCircle2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Typewriter from '@/components/ui/Typewriter';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const termsSections = [
     {
@@ -79,8 +95,14 @@ const keyPoints = [
 const words = ["Transparency", "Trust", "Fairness", "Respect"];
 
 export default function TermsPage() {
+    const { isDark } = useTheme();
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
-    
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -106,38 +128,64 @@ export default function TermsPage() {
         }, 1500);
     }, []);
 
-    return (
-        <div className="min-h-screen bg-transparent">
-            {/* Hero Section */}
-            <section
-                className="relative py-32 overflow-hidden"
-                style={{
-                    backgroundImage: "url('/herobackgrond.svg')",
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundColor: '#000'
-                }}
-            >
-                {/* Animated Background Layers */}
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
-                    <div className="absolute inset-0 opacity-30">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
-                    </div>
-                    {/* Bottom section overlay */}
-                    <div
-                        className="absolute inset-x-0 bottom-0 h-full opacity-40 mix-blend-screen"
-                        style={{
-                            backgroundImage: "url('/bottomsection.svg')",
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'bottom',
-                            backgroundRepeat: 'no-repeat'
-                        }}
-                    />
-                </div>
+    const textPrimary = isDark ? 'text-white' : 'text-slate-900';
+    const textMuted = isDark ? 'text-gray-400' : 'text-slate-500';
+    const cardBg = isDark ? 'bg-gray-900/30 border-gray-800 hover:border-blue-500/50' : 'bg-white/70 border-slate-200 hover:border-blue-300 shadow-sm';
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+    return (
+        <div className={`min-h-screen pb-20 ${isDark ? 'bg-transparent' : 'bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/40'}`}>
+            {/* Background with grid pattern */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                {isDark ? (
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            backgroundImage: "url('/herobackgrond.svg')",
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundColor: '#000'
+                        }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
+                        <div className="absolute inset-0 opacity-30">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="absolute inset-0">
+                        <div
+                            className="absolute inset-0"
+                            style={{
+                                backgroundImage: "url('/herobackgrond.svg')",
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundColor: '#fff'
+                            }}
+                        />
+                        <div className="absolute inset-0 bg-white/82" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 via-white/40 to-blue-50/70" />
+
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+                                                linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)`,
+                                backgroundSize: '60px 60px',
+                            }}
+                        />
+
+                        <div className="absolute inset-0 opacity-15">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-200/50 to-transparent animate-gradient-x" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-100/40 to-transparent animate-gradient-y" />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Hero Section */}
+            <section className="relative py-32 overflow-hidden z-10">
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial="hidden"
                         animate="visible"
@@ -146,13 +194,13 @@ export default function TermsPage() {
                     >
                         <motion.h1
                             variants={itemVariants}
-                            className="text-6xl md:text-8xl font-bold text-white mb-8 tracking-tight leading-tight"
+                            className={`text-6xl md:text-8xl font-bold mb-8 tracking-tight leading-tight ${textPrimary}`}
                         >
                             Terms & <br />
                             <span
                                 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 inline-block relative"
                                 style={{
-                                    textShadow: '0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(59, 130, 246, 0.4)'
+                                    textShadow: isDark ? '0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(59, 130, 246, 0.4)' : 'none'
                                 }}
                             >
                                 <Typewriter
@@ -163,8 +211,8 @@ export default function TermsPage() {
                                 />
                             </span>
                         </motion.h1>
-                        <motion.p variants={itemVariants} className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">
-                            Please read these terms carefully before using our blog. By accessing our platform, you agree to be bound by these <span className="text-white font-semibold underline decoration-purple-500/50">conditions</span> and our community guidelines.
+                        <motion.p variants={itemVariants} className={`text-xl md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed ${isDark ? 'text-gray-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-slate-600'}`}>
+                            Please read these terms carefully before using our blog. By accessing our platform, you agree to be bound by these <span className={`font-semibold underline ${isDark ? 'text-white decoration-purple-500/50' : 'text-purple-700 decoration-purple-500/30'}`}>conditions</span> and our community guidelines.
                         </motion.p>
                         <motion.div variants={itemVariants} className="flex justify-center space-x-6">
                             <Link
@@ -176,30 +224,17 @@ export default function TermsPage() {
                             </Link>
                             <Link
                                 href="/privacy"
-                                className="border-2 border-gray-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-white/10 transition-all backdrop-blur-sm"
+                                className={`border-2 px-10 py-4 rounded-xl font-bold transition-all backdrop-blur-sm ${isDark ? 'border-gray-600 text-white hover:bg-white/10' : 'border-slate-300 text-slate-700 hover:bg-white/50'}`}
                             >
                                 Privacy Policy
                             </Link>
                         </motion.div>
                     </motion.div>
                 </div>
-
-                <style jsx>{`
-                    @keyframes gradient-x {
-                        0%, 100% { transform: translateX(-50%); }
-                        50% { transform: translateX(50%); }
-                    }
-                    @keyframes gradient-y {
-                        0%, 100% { transform: translateY(-50%); }
-                        50% { transform: translateY(50%); }
-                    }
-                    .animate-gradient-x { animation: gradient-x 15s ease-in-out infinite; }
-                    .animate-gradient-y { animation: gradient-y 20s ease-in-out infinite; }
-                `}</style>
             </section>
 
             {/* Key Points Section */}
-            <section className="py-16">
+            <section className="py-16 relative z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -209,12 +244,12 @@ export default function TermsPage() {
                         className="grid grid-cols-1 md:grid-cols-3 gap-8"
                     >
                         {keyPoints.map((point, index) => (
-                            <div key={index} className="text-center p-6 bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 hover:border-purple-500/30 transition-colors">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-full mb-4">
-                                    <point.icon className="w-8 h-8 text-blue-400" />
+                            <div key={index} className={`text-center p-8 backdrop-blur-sm rounded-2xl border transition-all hover:scale-105 ${cardBg}`}>
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full mb-4">
+                                    <point.icon className="w-8 h-8 text-blue-500" />
                                 </div>
-                                <div className="text-xl font-bold text-white mb-2">{point.title}</div>
-                                <div className="text-gray-400">{point.description}</div>
+                                <div className={`text-xl font-black mb-2 ${textPrimary}`}>{point.title}</div>
+                                <div className={textMuted}>{point.description}</div>
                             </div>
                         ))}
                     </motion.div>
@@ -222,7 +257,7 @@ export default function TermsPage() {
             </section>
 
             {/* Terms Sections */}
-            <section className="py-20">
+            <section className="py-20 relative z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -230,8 +265,8 @@ export default function TermsPage() {
                         viewport={{ once: true }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-4xl font-bold text-white mb-4">Terms and Conditions</h2>
-                        <p className="text-gray-400 max-w-2xl mx-auto">
+                        <h2 className={`text-4xl font-black mb-4 ${textPrimary}`}>Terms and Conditions</h2>
+                        <p className={`max-w-2xl mx-auto ${textMuted}`}>
                             The following terms govern your use of our blog platform and services
                         </p>
                     </motion.div>
@@ -244,17 +279,17 @@ export default function TermsPage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.1 }}
-                                className="group bg-gray-900/30 p-8 rounded-2xl border border-gray-800 hover:border-blue-500/50 transition-all hover:-translate-y-2"
+                                className={`group p-8 rounded-2xl border transition-all hover:-translate-y-2 ${cardBg}`}
                             >
-                                <div className="flex items-start space-x-4">
+                                <div className="flex items-start space-x-6">
                                     <div className="flex-shrink-0">
-                                        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-xl group-hover:scale-110 transition-transform">
-                                            <section.icon className="w-6 h-6 text-blue-400" />
+                                        <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600/10 to-purple-600/10 rounded-2xl group-hover:scale-110 transition-transform">
+                                            <section.icon className="w-7 h-7 text-blue-500" />
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white mb-3">{section.title}</h3>
-                                        <p className="text-gray-400 leading-relaxed">{section.content}</p>
+                                        <h3 className={`text-xl font-black mb-4 ${textPrimary}`}>{section.title}</h3>
+                                        <p className={`${textMuted} leading-relaxed font-medium`}>{section.content}</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -264,37 +299,35 @@ export default function TermsPage() {
             </section>
 
             {/* Important Notice Section */}
-            <section className="py-20">
+            <section className="py-20 relative z-10">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 backdrop-blur-sm rounded-3xl border border-gray-800 p-10 text-center"
+                        className={`backdrop-blur-md rounded-3xl border p-12 text-center relative overflow-hidden group ${isDark ? 'bg-gray-900/40 border-gray-800 shadow-2xl' : 'bg-white/80 border-slate-200 shadow-xl'}`}
                     >
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-900/50 to-orange-900/50 rounded-full mb-6">
-                            <AlertCircle className="w-10 h-10 text-yellow-400" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-500" />
+                        <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-full mb-8 group-hover:scale-110 transition-transform duration-500">
+                            <Gavel className="w-12 h-12 text-yellow-500" />
                         </div>
-                        <h2 className="text-3xl font-bold text-white mb-4">Important Legal Notice</h2>
-                        <p className="text-gray-300 mb-6 leading-relaxed">
-                            These terms constitute a legally binding agreement between you and our blog platform. 
-                            If you have any questions or concerns about these terms, please contact our legal team 
-                            before proceeding to use our services. We recommend consulting with legal counsel if 
-                            you need clarification on any of these provisions.
+                        <h2 className={`text-3xl lg:text-4xl font-black mb-6 ${textPrimary}`}>Important Legal Notice</h2>
+                        <p className={`${textMuted} mb-10 leading-relaxed text-lg`}>
+                            These terms constitute a legally binding agreement between you and our blog platform.
+                            If you have any questions or concerns about these terms, please contact our legal team
+                            before proceeding to use our services.
                         </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                        <div className="flex flex-col sm:flex-row justify-center gap-6">
                             <Link
                                 href="/contactus"
-                                className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-bold transition-all hover:shadow-purple-500/40"
+                                className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-2xl font-black transition-all hover:scale-105 shadow-xl shadow-purple-500/20 group"
                             >
                                 Contact Legal Team
-                                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
+                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                             <Link
                                 href="/"
-                                className="inline-flex items-center justify-center border-2 border-gray-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition-all"
+                                className={`inline-flex items-center justify-center px-10 py-4 rounded-2xl font-black border-2 transition-all hover:bg-white/10 ${isDark ? 'border-gray-700 text-white' : 'border-slate-300 text-slate-700'}`}
                             >
                                 Return to Home
                             </Link>
@@ -303,7 +336,44 @@ export default function TermsPage() {
                 </div>
             </section>
 
-          
+            {/* Bottom Compliance Section */}
+            <section className="py-12 mt-20 border-t relative z-10 ${isDark ? 'border-white/5' : 'border-slate-200'}">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid md:grid-cols-2 gap-8 items-center">
+                        <div className="flex items-center space-x-6">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${isDark ? 'bg-gray-800' : 'bg-white shadow-sm'}`}>
+                                <CheckCircle2 className="w-8 h-8 text-green-500" />
+                            </div>
+                            <div>
+                                <p className={`text-xs font-black uppercase tracking-widest mb-1 ${textMuted}`}>Platform Status</p>
+                                <p className={`text-xl font-black ${textPrimary}`}>Legally Compliant</p>
+                            </div>
+                        </div>
+                        <div className="text-center md:text-right">
+                            <p className={`${textMuted} text-sm font-medium`}>
+                                Last Review: January 15, 2024
+                            </p>
+                            <div className="flex items-center justify-center md:justify-end gap-4 mt-2">
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20`}>v2.0 Revision</span>
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded bg-purple-500/10 text-purple-500 border border-purple-500/20`}>Public Release</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <style jsx global>{`
+                @keyframes gradient-x {
+                    0%, 100% { transform: translateX(-5%); opacity: 0.3; }
+                    50% { transform: translateX(5%); opacity: 0.6; }
+                }
+                @keyframes gradient-y {
+                    0%, 100% { transform: translateY(-5%); opacity: 0.3; }
+                    50% { transform: translateY(5%); opacity: 0.6; }
+                }
+                .animate-gradient-x { animation: gradient-x 15s ease-in-out infinite; }
+                .animate-gradient-y { animation: gradient-y 20s ease-in-out infinite; }
+            `}</style>
         </div>
     );
 }

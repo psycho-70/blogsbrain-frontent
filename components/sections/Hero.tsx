@@ -5,6 +5,7 @@ import CTAButton from '../ui/CTAButton'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import TypeWriter from "../ui/Typewriter"
 import { useAI } from '@/contexts/AIContext'
+import { useTheme } from '@/contexts/ThemeContext'
 import dynamic from 'next/dynamic'
 import GlobeStarsBackground from '../ui/GlobeStarsBackground'
 const GlobeMap = dynamic(() => import('../ui/GlobeMap'), { ssr: false })
@@ -21,6 +22,7 @@ const Hero = () => {
   const sectionRef = useRef<HTMLElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
   const { triggerTourFromVideo, setShowAI, setMode } = useAI()
+  const { isDark } = useTheme()
 
   const playSound = () => {
     const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3')
@@ -61,37 +63,27 @@ const Hero = () => {
     }
   }
 
-  // Enhanced glow animation effect
   useEffect(() => {
     if (!contentVisible) return
-
     let animationFrameId: number
     let time = 0
-
     const animateGlow = () => {
       time += 0.02
       const intensity = 1 +
         Math.sin(time) * 0.15 +
         Math.sin(time * 1.5) * 0.1 +
         Math.sin(time * 2.5) * 0.05
-
       setGlowIntensity(intensity)
       animationFrameId = requestAnimationFrame(animateGlow)
     }
-
     animateGlow()
-
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-    }
+    return () => cancelAnimationFrame(animationFrameId)
   }, [contentVisible])
 
   const handleVideoEnded = () => {
     setVideoEnded(true)
     setTimeout(() => setContentVisible(true), 300)
-    setTimeout(() => {
-      triggerTourFromVideo()
-    }, 1500)
+    setTimeout(() => triggerTourFromVideo(), 1500)
   }
 
   const handleTypewriterComplete = useCallback(() => {
@@ -102,9 +94,7 @@ const Hero = () => {
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        handleVideoEnded()
-      })
+      videoRef.current.play().catch(() => handleVideoEnded())
     } else {
       handleVideoEnded()
     }
@@ -112,65 +102,105 @@ const Hero = () => {
   }, [])
 
   return (
-    <section ref={sectionRef} id="hero" className="relative mt-20 flex items-center justify-center overflow-hidden bg-black">
-      {/* Video Background */}
+    <section
+      ref={sectionRef}
+      id="hero"
+      className={`relative mt-20 flex items-center justify-center overflow-hidden transition-colors duration-500 ${
+        isDark
+          ? 'bg-black'
+          : 'bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/40'
+      }`}
+    >
+      {/* ── Background Layer ── */}
       <div className="absolute inset-0 z-0">
-        {/* <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          onEnded={handleVideoEnded}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoEnded ? 'opacity-0' : 'opacity-100'
+        {isDark ? (
+          /* Dark mode: existing SVG + globe stars */
+          <div
+            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
+              videoEnded ? 'opacity-100' : 'opacity-0'
             }`}
-          style={{ objectFit: 'cover', filter: 'brightness(0.4)' }}
-        >
-          <source src="/0202.mp4" type="video/mp4" />
-        </video> */}
-
-        {/* Background after video */}
-        <div
-          className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${videoEnded ? 'opacity-100' : 'opacity-0'
-            }`}
-          style={{
-            backgroundImage: "url('/herobackgrond.svg')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundColor: '#000'
-          }}
-        >
-          <GlobeStarsBackground />
-          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
+            style={{
+              backgroundImage: "url('/herobackgrond.svg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundColor: '#000',
+            }}
+          >
+            <GlobeStarsBackground />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/10 to-black/60" />
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent animate-gradient-x" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-gradient-y" />
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Light mode: herobackgrond.svg with white overlay */
+          <div className="absolute inset-0">
+            {/* Same SVG as dark mode, heavily washed out to appear light */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: "url('/herobackgrond.svg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: '#fff',
+              }}
+            />
+
+            {/* White wash — lightens the dark SVG */}
+            <div className="absolute inset-0 bg-white/82" />
+
+            {/* Soft purple-blue tint */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 via-white/40 to-blue-50/70" />
+
+            {/* Colour blobs */}
+            <div
+              className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full opacity-25 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%)',
+                transform: 'translate(-30%, -30%)',
+              }}
+            />
+            <div
+              className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%)',
+                transform: 'translate(20%, 20%)',
+              }}
+            />
+            <div
+              className="absolute top-1/2 left-1/2 w-[800px] h-[400px] opacity-15 pointer-events-none"
+              style={{
+                background: 'radial-gradient(ellipse, rgba(168,85,247,0.15) 0%, transparent 60%)',
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            {/* Black grid */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                                  linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+                backgroundSize: '60px 60px',
+              }}
+            />
+
+            {/* Moving shimmer */}
+            <div className="absolute inset-0 opacity-15">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-200/50 to-transparent animate-gradient-x" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-100/40 to-transparent animate-gradient-y" />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Skip intro button */}
-      {/* {!videoEnded && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.7 }}
-          transition={{ delay: 2 }}
-          onClick={() => {
-            if (videoRef.current) {
-              videoRef.current.currentTime = videoRef.current.duration
-            }
-            handleVideoEnded()
-          }}
-          className="absolute bottom-8 right-8 z-30 px-4 py-2 bg-black/50 text-white rounded-full text-sm hover:bg-black/70 transition-colors backdrop-blur-sm border border-white/20"
-        >
-          Skip intro
-        </motion.button>
-      )} */}
-
-      {/* Main Content */}
+      {/* ── Main Content ── */}
       <motion.div
         style={{ scale: contentScale, opacity: contentOpacity }}
-        className={`relative z-20 min-h-[600px] h-auto lg:h-[600px] py-10 lg:py-0 mt-20 max-w-7xl mx-auto px-4 flex items-center transition-all duration-1000 ${contentVisible ? 'opacity-100' : 'opacity-0'
-          }`}
+        className={`relative z-20 min-h-[600px] h-auto lg:h-[600px] py-10 lg:py-0 mt-20 max-w-7xl mx-auto px-4 flex items-center transition-all duration-1000 ${
+          contentVisible ? 'opacity-100' : 'opacity-0'
+        }`}
       >
         <motion.div
           variants={containerVariants}
@@ -178,17 +208,28 @@ const Hero = () => {
           animate={contentVisible ? "visible" : "hidden"}
           className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full"
         >
-          {/* Left Column: Text */}
+          {/* ── Left Column: Text ── */}
           <div className="text-left">
             <motion.div variants={itemVariants} className="mb-6">
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight text-white">
+              <h1
+                className={`text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight ${
+                  isDark ? 'text-white' : 'text-slate-900'
+                }`}
+              >
                 Discover the <br />
                 <span
                   ref={textRef}
-                  className="power-text relative inline-block text-white"
+                  className="power-text relative inline-block"
                   style={{
-                    color: 'white',
-                    textShadow: '0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(59, 130, 246, 0.4)'
+                    color: isDark ? 'white' : 'transparent',
+                    backgroundImage: isDark
+                      ? 'none'
+                      : 'linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #7c3aed 100%)',
+                    WebkitBackgroundClip: isDark ? 'unset' : 'text',
+                    backgroundClip: isDark ? 'unset' : 'text',
+                    textShadow: isDark
+                      ? '0 0 15px rgba(168, 85, 247, 0.6), 0 0 30px rgba(59, 130, 246, 0.4)'
+                      : 'none',
                   }}
                 >
                   <TypeWriter
@@ -204,12 +245,20 @@ const Hero = () => {
 
             <motion.p
               variants={itemVariants}
-              className="text-xl text-gray-300 mb-10 max-w-xl leading-relaxed glow-text"
+              className={`text-xl mb-10 max-w-xl leading-relaxed ${
+                isDark ? 'text-gray-300 glow-text' : 'text-slate-600'
+              }`}
             >
               Experience AI-powered interactive blogging with{' '}
-              <span className="font-bold text-white relative">
+              <span
+                className={`font-bold relative ${
+                  isDark ? 'text-white' : 'text-purple-700'
+                }`}
+              >
                 Einsteine
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-xl opacity-70" />
+                {isDark && (
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-xl opacity-70" />
+                )}
               </span>
               . Your intelligent companion that brings content to life with real-time adaptation and smart insights.
             </motion.p>
@@ -221,10 +270,9 @@ const Hero = () => {
               <CTAButton
                 buttonId="hero-start-exploring"
                 onClick={() => window.location.href = '/blogs'}
-                className="text-lg px-8 py-4 glow-button"
+                className={`text-lg px-8 py-4 ${isDark ? 'glow-button' : 'light-glow-button'}`}
               >
                 <span className="relative z-10">🚀 Start Exploring</span>
-                {/* <span className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-70" /> */}
               </CTAButton>
 
               <CTAButton
@@ -233,62 +281,60 @@ const Hero = () => {
                   setMode('chat')
                   setShowAI(true)
                 }}
-                className="text-lg px-8 py-4 border-2 glow-border"
+                className={`text-lg px-8 py-4 border-2 ${isDark ? 'glow-border' : 'light-glow-border'}`}
               >
-                <div className="relative z-10 flex items-center gap-2"><img src="./robot3.png" width={20} height={20} alt="" /> Meet Einsteine</div>
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 blur-md opacity-50" />
+                <div className="relative z-10 flex items-center gap-2">
+                  <img src="./robot3.png" width={20} height={20} alt="" />
+                  Meet Einsteine
+                </div>
+                <span
+                  className={`absolute inset-0 blur-md opacity-50 ${
+                    isDark
+                      ? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10'
+                      : 'bg-gradient-to-r from-purple-100/30 via-blue-100/30 to-purple-100/30'
+                  }`}
+                />
               </CTAButton>
             </motion.div>
           </div>
 
-          {/* Right Column: 3D Globe */}
+          {/* ── Right Column: 3D Globe ── */}
           <motion.div
             className="relative flex items-center justify-center lg:justify-end"
             initial={{ opacity: 0, scale: 0.3 }}
-            animate={contentVisible
-              ? { opacity: 1, scale: 1 }
-              : { opacity: 0, scale: 0.3 }
-            }
+            animate={contentVisible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.3 }}
             transition={{ type: 'spring', stiffness: 45, damping: 16, delay: 0.35 }}
           >
-            {/*
-              KEY FIX:
-              - w-full + max-w-md gives the column a capped width
-              - aspect-square gives it an explicit height (equal to width)
-              - The inner div with w-full h-full rounded-full is the clipping circle
-              - GlobeMap mounts inside it and reads real clientWidth/clientHeight
-            */}
-            <div className="w-full max-w-md aspect-square relative">
+            <div
+              className={`w-full max-w-md aspect-square relative rounded-full transition-all duration-500 ${
+                isDark
+                  ? ''
+                  : 'shadow-[0_0_60px_rgba(139,92,246,0.15),0_0_120px_rgba(59,130,246,0.08)]'
+              }`}
+            >
               {contentVisible ? (
-                <div
-                  className="w-full h-full"
-                // style={{
-                //   boxShadow: [
-                //     '0 0 0 1px rgba(147,51,234,0.15)',
-                //     '0 0 40px 8px rgba(147,51,234,0.22)',
-                //     '0 0 80px 20px rgba(59,130,246,0.12)',
-                //   ].join(', '),
-                // }}
-                >
+                <div className="w-full h-full">
                   <GlobeMap contentVisible={contentVisible} />
                 </div>
               ) : (
-                /* Skeleton placeholder while globe hasn't mounted yet */
                 <div
-                  className="w-full h-full  opacity-20 border-2 border-dashed border-purple-500/50"
+                  className="w-full h-full opacity-20 border-2 border-dashed border-purple-500/50 rounded-full"
                   style={{
-                    background: 'radial-gradient(circle at 35% 35%, #0f0328 0%, #050010 100%)',
-                    boxShadow: '0 0 40px 8px rgba(147,51,234,0.12)',
+                    background: isDark
+                      ? 'radial-gradient(circle at 35% 35%, #0f0328 0%, #050010 100%)'
+                      : 'radial-gradient(circle at 35% 35%, #ede9fe 0%, #dbeafe 100%)',
+                    boxShadow: isDark
+                      ? '0 0 40px 8px rgba(147,51,234,0.12)'
+                      : '0 0 40px 8px rgba(139,92,246,0.08)',
                   }}
                 />
               )}
             </div>
           </motion.div>
-
         </motion.div>
       </motion.div>
 
-      {/* 3D Yellow Play Button */}
+      {/* ── 3D Yellow Play Button ── */}
       {contentVisible && (
         <motion.div
           initial={{ opacity: 0, scale: 0 }}
@@ -305,15 +351,10 @@ const Hero = () => {
             }}
             className="relative group"
           >
-            {/* 3D Depth */}
             <div className="absolute inset-0 translate-y-2 bg-yellow-700 rounded-full blur-md opacity-40 group-hover:translate-y-3 transition-transform" />
             <div className="absolute inset-0 translate-y-1.5 bg-yellow-800 rounded-full" />
-
-            {/* Button Body */}
             <div className="relative w-20 h-20 bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 rounded-full border-4 border-white/20 flex items-center justify-center shadow-2xl group-active:translate-y-1 transition-transform overflow-hidden">
-              {/* Shine effect */}
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full duration-700 transition-transform" />
-
               <svg className="w-8 h-8 text-yellow-950 fill-current ml-1" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -322,7 +363,7 @@ const Hero = () => {
         </motion.div>
       )}
 
-      {/* Video Modal Screen */}
+      {/* ── Video Modal ── */}
       {isPlayingVideo && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
           <motion.div
@@ -338,65 +379,27 @@ const Hero = () => {
             >
               <source src="/new.mp4" type="video/mp4" />
             </video>
-
-            {/* Close Button */}
             <button
               onClick={() => setIsPlayingVideo(false)}
               className="absolute top-4 right-4 z-50 w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold hover:scale-110 transition-transform"
             >
               ✕
             </button>
-
-            {/* Modal Glow */}
             <div className="absolute -inset-10 bg-yellow-500/10 blur-[60px] pointer-events-none" />
           </motion.div>
         </div>
       )}
 
-      {/* Floating particles */}
-      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20"
-            style={{
-              width: Math.random() * 6 + 2 + 'px',
-              height: Math.random() * 6 + 2 + 'px',
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              animation: `float-particle ${Math.random() * 10 + 15}s linear infinite`,
-              animationDelay: Math.random() * 5 + 's',
-              filter: 'blur(1px)',
-            }}
-          />
-        ))}
-      </div> */}
-
-      {/* Custom Styles */}
+      {/* ── Custom Styles ── */}
       <style jsx>{`
         @keyframes gradient-x {
           0%, 100% { transform: translateX(-100%); }
           50% { transform: translateX(100%); }
         }
-
         @keyframes gradient-y {
           0%, 100% { transform: translateY(-100%); }
           50% { transform: translateY(100%); }
         }
-
-        @keyframes float-particle {
-          0% {
-            transform: translateY(0) translateX(0);
-            opacity: 0;
-          }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% {
-            transform: translateY(-100vh) translateX(calc(var(--random-x) * 100px));
-            opacity: 0;
-          }
-        }
-
         @keyframes lightning {
           0%, 100% {
             filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.6))
@@ -429,54 +432,42 @@ const Hero = () => {
                     drop-shadow(0 0 90px rgba(236, 72, 153, 0.2));
           }
         }
-
         @keyframes typing-glow {
           0%, 100% {
-            box-shadow:
-              0 0 20px rgba(255, 255, 255, 0.3),
-              0 0 40px rgba(255, 255, 255, 0.2),
-              0 0 60px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.2), 0 0 60px rgba(255,255,255,0.1);
           }
           50% {
-            box-shadow:
-              0 0 40px rgba(255, 255, 255, 0.6),
-              0 0 80px rgba(255, 255, 255, 0.4),
-              0 0 120px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 40px rgba(255,255,255,0.6), 0 0 80px rgba(255,255,255,0.4), 0 0 120px rgba(255,255,255,0.2);
           }
         }
+        .power-text { animation: lightning 8s infinite; }
+        .animate-gradient-x { animation: gradient-x 15s ease-in-out infinite; }
+        .animate-gradient-y { animation: gradient-y 20s ease-in-out infinite; }
 
-        .power-text {
-          animation: lightning 8s infinite;
-        }
-
-        .animate-gradient-x {
-          animation: gradient-x 15s ease-in-out infinite;
-        }
-
-        .animate-gradient-y {
-          animation: gradient-y 20s ease-in-out infinite;
-        }
-
+        /* Dark mode text glow */
         .glow-text {
-          text-shadow: 0 0 10px rgba(168, 85, 247, 0.3),
-                       0 0 20px rgba(59, 130, 246, 0.2);
+          text-shadow: 0 0 10px rgba(168,85,247,0.3), 0 0 20px rgba(59,130,246,0.2);
         }
 
+        /* Dark mode button glows */
         .glow-button {
-          box-shadow: 0 0 20px rgba(59, 130, 246, 0.4),
-                      0 0 40px rgba(168, 85, 247, 0.3),
-                      0 0 60px rgba(236, 72, 153, 0.2);
+          box-shadow: 0 0 20px rgba(59,130,246,0.4), 0 0 40px rgba(168,85,247,0.3), 0 0 60px rgba(236,72,153,0.2);
         }
-
         .glow-border {
           border-image: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899) 1;
-          box-shadow: 0 0 15px rgba(59, 130, 246, 0.3),
-                      inset 0 0 15px rgba(59, 130, 246, 0.2);
+          box-shadow: 0 0 15px rgba(59,130,246,0.3), inset 0 0 15px rgba(59,130,246,0.2);
         }
 
-        .typewriter-cursor {
-          animation: typing-glow 1.5s ease-in-out infinite;
+        /* Light mode button glows */
+        .light-glow-button {
+          box-shadow: 0 4px 20px rgba(124,58,237,0.25), 0 8px 40px rgba(59,130,246,0.15);
         }
+        .light-glow-border {
+          border-color: rgba(124,58,237,0.4);
+          box-shadow: 0 4px 15px rgba(124,58,237,0.15), inset 0 0 10px rgba(124,58,237,0.05);
+        }
+
+        .typewriter-cursor { animation: typing-glow 1.5s ease-in-out infinite; }
       `}</style>
     </section>
   )

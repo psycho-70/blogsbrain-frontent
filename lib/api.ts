@@ -532,4 +532,53 @@ export async function adminDeleteContact(token: string, contactId: number) {
   if (!res.ok) throw new Error(data.message || 'Failed to delete contact')
   return data
 }
+export async function adminGetAnalytics(token: string): Promise<{
+  dailyActivity: { date: string; count: number }[]
+  dailyLeads: { date: string; count: number }[]
+  topPages: { url: string; views: number }[]
+  referrers: { name: string; count: number }[]
+}> {
+  const res = await fetch(`${API_BASE}/api/admin/tracking/analytics`, {
+    headers: getAuthHeaders(token),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Failed to fetch analytics')
+  return data
+}
 
+export async function adminGetSubscribers(token: string): Promise<{ email: string; name: string }[]> {
+  const res = await fetch(`${API_BASE}/api/admin/email/subscribers`, {
+    headers: getAuthHeaders(token),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Failed to fetch subscribers')
+  return data
+}
+
+export async function adminSendEmail(token: string, payload: { subject: string; content: string; recipients: string[] }): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/admin/email/send`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(token),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Failed to send email')
+  return data
+}
+
+export async function adminSendNewsletter(token: string, recipients: string[]): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/admin/email/send-newsletter`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(token),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ recipients }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Failed to send newsletter')
+  return data
+}

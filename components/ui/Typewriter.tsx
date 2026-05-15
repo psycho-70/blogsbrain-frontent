@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface TypewriterProps {
   text: string
@@ -12,8 +13,8 @@ interface TypewriterProps {
 export default function Typewriter({ text, speed = 60, onComplete, className = '' }: TypewriterProps) {
   const [displayed, setDisplayed] = useState('')
   const [done, setDone] = useState(false)
+  const { isDark } = useTheme()
 
-  // Stable ref for the callback so we don't restart the effect
   const onCompleteRef = useRef(onComplete)
   useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
@@ -37,13 +38,27 @@ export default function Typewriter({ text, speed = 60, onComplete, className = '
   return (
     <span className={`relative inline-block ${className}`}>
       {/* Visible text */}
-      <span className="relative z-10 text-white">{displayed}</span>
+      <span
+        className="relative z-10"
+        style={{
+          color: isDark ? 'white' : 'transparent',
+          backgroundImage: isDark
+            ? 'none'
+            : 'linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #7c3aed 100%)',
+          WebkitBackgroundClip: isDark ? 'unset' : 'text',
+          backgroundClip: isDark ? 'unset' : 'text',
+        }}
+      >
+        {displayed}
+      </span>
 
-      {/* Subtle static glow — no per-character flash */}
+      {/* Subtle glow behind text */}
       <span
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.08), transparent)',
+          background: isDark
+            ? 'linear-gradient(90deg, transparent, rgba(168,85,247,0.08), transparent)'
+            : 'linear-gradient(90deg, transparent, rgba(124,58,237,0.05), transparent)',
           filter: 'blur(12px)',
         }}
       />
@@ -55,10 +70,14 @@ export default function Typewriter({ text, speed = 60, onComplete, className = '
           style={{
             width: 2,
             height: '0.85em',
-            background: 'linear-gradient(to bottom, #fff, #c084fc)',
+            background: isDark
+              ? 'linear-gradient(to bottom, #fff, #c084fc)'
+              : 'linear-gradient(to bottom, #7c3aed, #2563eb)',
             borderRadius: 2,
             animation: 'tw-blink 1s step-start infinite',
-            boxShadow: '0 0 6px rgba(192,132,252,0.7)',
+            boxShadow: isDark
+              ? '0 0 6px rgba(192,132,252,0.7)'
+              : '0 0 6px rgba(124,58,237,0.5)',
           }}
         />
       )}
