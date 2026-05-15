@@ -62,11 +62,11 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       icon: Mail,
       href: '/admin/contacts',
     },
-    {
-      title: 'Email Center',
-      icon: Inbox,
-      href: '/admin/email-center',
-    },
+    // {
+    //   title: 'Email Center',
+    //   icon: Inbox,
+    //   href: '/admin/email-center',
+    // },
   ]
 
   const isActive = (href: string) => pathname === href
